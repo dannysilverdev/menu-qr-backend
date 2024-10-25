@@ -1,11 +1,569 @@
 {
   "/home/dannysilver/menu-qr/backend": {
     "versionSfCore": null,
-    "versionFramework": "4.4.6",
+    "versionFramework": "4.4.7",
     "isWithinCompose": false,
     "isCompose": false,
     "composeOrgName": null,
     "composeResolverProviders": {
+      "opt": {
+        "instance": {
+          "credentials": "<REDACTED>",
+          "serviceConfigFile": {
+            "service": "menu-qr-backend",
+            "provider": {
+              "name": "aws",
+              "runtime": "nodejs18.x",
+              "region": "us-east-1",
+              "iamRoleStatements": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem",
+                    "dynamodb:Scan",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/MenuQrUsersTable"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:Invoke"
+                  ],
+                  "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                }
+              ],
+              "stage": "dev",
+              "versionFunctions": true
+            },
+            "functions": {
+              "signup": {
+                "handler": "handler.signup",
+                "events": [
+                  {
+                    "http": {
+                      "path": "signup",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-signup"
+              },
+              "login": {
+                "handler": "handler.login",
+                "events": [
+                  {
+                    "http": {
+                      "path": "login",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-login"
+              },
+              "home": {
+                "handler": "handler.home",
+                "events": [
+                  {
+                    "http": {
+                      "path": "home",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-home"
+              },
+              "menu": {
+                "handler": "handler.menu",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-menu"
+              },
+              "createCategory": {
+                "handler": "handler.createCategory",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu/category",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-createCategory"
+              },
+              "createProduct": {
+                "handler": "handler.createProduct",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu/category/{categoryId}/product",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-createProduct"
+              },
+              "getCategories": {
+                "handler": "handler.getCategories",
+                "events": [
+                  {
+                    "http": {
+                      "path": "categories/{userId}",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-getCategories"
+              },
+              "getProducts": {
+                "handler": "handler.getProducts",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu/category/{categoryId}/products",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-getProducts"
+              }
+            },
+            "resources": {
+              "Resources": {
+                "UsersTable": {
+                  "Type": "AWS::DynamoDB::Table",
+                  "Properties": {
+                    "TableName": "MenuQrUsersTable",
+                    "AttributeDefinitions": [
+                      {
+                        "AttributeName": "PK",
+                        "AttributeType": "S"
+                      },
+                      {
+                        "AttributeName": "SK",
+                        "AttributeType": "S"
+                      }
+                    ],
+                    "KeySchema": [
+                      {
+                        "AttributeName": "PK",
+                        "KeyType": "HASH"
+                      },
+                      {
+                        "AttributeName": "SK",
+                        "KeyType": "RANGE"
+                      }
+                    ],
+                    "ProvisionedThroughput": {
+                      "ReadCapacityUnits": 5,
+                      "WriteCapacityUnits": 5
+                    }
+                  }
+                },
+                "GatewayResponse": {
+                  "Type": "AWS::ApiGateway::GatewayResponse",
+                  "Properties": {
+                    "ResponseParameters": {
+                      "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                      "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'",
+                      "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'",
+                      "gatewayresponse.header.Access-Control-Allow-Credentials": "<REDACTED>"
+                    },
+                    "ResponseType": "DEFAULT_4XX",
+                    "RestApiId": {
+                      "Ref": "ApiGatewayRestApi"
+                    }
+                  }
+                }
+              }
+            },
+            "plugins": [
+              "serverless-offline",
+              "serverless-dynamodb-local"
+            ],
+            "custom": {
+              "defaultRegion": "us-east-1",
+              "dynamodb": {
+                "stages": [
+                  "dev"
+                ],
+                "start": {
+                  "port": 8000,
+                  "inMemory": true,
+                  "migrate": true,
+                  "seed": true,
+                  "noStart": true
+                }
+              }
+            }
+          },
+          "configFileDirPath": "/home/dannysilver/menu-qr/backend",
+          "config": {
+            "type": "opt"
+          },
+          "options": {},
+          "stage": "dev",
+          "logger": {
+            "namespace": "s:core:resolver:opt",
+            "prefix": null,
+            "prefixColor": null
+          },
+          "_credentialsPromise": "<REDACTED>"
+        },
+        "resolvers": {}
+      },
+      "self": {
+        "instance": {
+          "credentials": "<REDACTED>",
+          "serviceConfigFile": {
+            "service": "menu-qr-backend",
+            "provider": {
+              "name": "aws",
+              "runtime": "nodejs18.x",
+              "region": "us-east-1",
+              "iamRoleStatements": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem",
+                    "dynamodb:Scan",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/MenuQrUsersTable"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:Invoke"
+                  ],
+                  "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                }
+              ],
+              "stage": "dev",
+              "versionFunctions": true
+            },
+            "functions": {
+              "signup": {
+                "handler": "handler.signup",
+                "events": [
+                  {
+                    "http": {
+                      "path": "signup",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-signup"
+              },
+              "login": {
+                "handler": "handler.login",
+                "events": [
+                  {
+                    "http": {
+                      "path": "login",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-login"
+              },
+              "home": {
+                "handler": "handler.home",
+                "events": [
+                  {
+                    "http": {
+                      "path": "home",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-home"
+              },
+              "menu": {
+                "handler": "handler.menu",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-menu"
+              },
+              "createCategory": {
+                "handler": "handler.createCategory",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu/category",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-createCategory"
+              },
+              "createProduct": {
+                "handler": "handler.createProduct",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu/category/{categoryId}/product",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-createProduct"
+              },
+              "getCategories": {
+                "handler": "handler.getCategories",
+                "events": [
+                  {
+                    "http": {
+                      "path": "categories/{userId}",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-getCategories"
+              },
+              "getProducts": {
+                "handler": "handler.getProducts",
+                "events": [
+                  {
+                    "http": {
+                      "path": "menu/category/{categoryId}/products",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://dljrvybt2jogj.cloudfront.net",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "allowCredentials": "<REDACTED>"
+                      }
+                    }
+                  }
+                ],
+                "name": "menu-qr-backend-dev-getProducts"
+              }
+            },
+            "resources": {
+              "Resources": {
+                "UsersTable": {
+                  "Type": "AWS::DynamoDB::Table",
+                  "Properties": {
+                    "TableName": "MenuQrUsersTable",
+                    "AttributeDefinitions": [
+                      {
+                        "AttributeName": "PK",
+                        "AttributeType": "S"
+                      },
+                      {
+                        "AttributeName": "SK",
+                        "AttributeType": "S"
+                      }
+                    ],
+                    "KeySchema": [
+                      {
+                        "AttributeName": "PK",
+                        "KeyType": "HASH"
+                      },
+                      {
+                        "AttributeName": "SK",
+                        "KeyType": "RANGE"
+                      }
+                    ],
+                    "ProvisionedThroughput": {
+                      "ReadCapacityUnits": 5,
+                      "WriteCapacityUnits": 5
+                    }
+                  }
+                },
+                "GatewayResponse": {
+                  "Type": "AWS::ApiGateway::GatewayResponse",
+                  "Properties": {
+                    "ResponseParameters": {
+                      "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                      "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'",
+                      "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'",
+                      "gatewayresponse.header.Access-Control-Allow-Credentials": "<REDACTED>"
+                    },
+                    "ResponseType": "DEFAULT_4XX",
+                    "RestApiId": {
+                      "Ref": "ApiGatewayRestApi"
+                    }
+                  }
+                }
+              }
+            },
+            "plugins": [
+              "serverless-offline",
+              "serverless-dynamodb-local"
+            ],
+            "custom": {
+              "defaultRegion": "us-east-1",
+              "dynamodb": {
+                "stages": [
+                  "dev"
+                ],
+                "start": {
+                  "port": 8000,
+                  "inMemory": true,
+                  "migrate": true,
+                  "seed": true,
+                  "noStart": true
+                }
+              }
+            }
+          },
+          "configFileDirPath": "/home/dannysilver/menu-qr/backend",
+          "config": {
+            "type": "self"
+          },
+          "options": {},
+          "stage": "dev",
+          "logger": {
+            "namespace": "s:core:resolver:self",
+            "prefix": null,
+            "prefixColor": null
+          },
+          "_credentialsPromise": "<REDACTED>"
+        },
+        "resolvers": {}
+      },
       "default-aws-credential-resolver": "<REDACTED>"
     },
     "composeServiceName": null,
@@ -28,7 +586,7 @@
               "dynamodb:Scan",
               "dynamodb:Query"
             ],
-            "Resource": "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable"
+            "Resource": "arn:aws:dynamodb:us-east-1:*:table/MenuQrUsersTable"
           },
           {
             "Effect": "Allow",
@@ -39,643 +597,7 @@
           }
         ],
         "stage": "dev",
-        "versionFunctions": true,
-        "compiledCloudFormationTemplate": {
-          "AWSTemplateFormatVersion": "2010-09-09",
-          "Description": "The AWS CloudFormation template for this Serverless application",
-          "Resources": {
-            "SignupLogGroup": {
-              "Type": "AWS::Logs::LogGroup",
-              "Properties": {
-                "LogGroupName": "/aws/lambda/menu-qr-backend-dev-signup"
-              }
-            },
-            "LoginLogGroup": {
-              "Type": "AWS::Logs::LogGroup",
-              "Properties": {
-                "LogGroupName": "/aws/lambda/menu-qr-backend-dev-login"
-              }
-            },
-            "HomeLogGroup": {
-              "Type": "AWS::Logs::LogGroup",
-              "Properties": {
-                "LogGroupName": "/aws/lambda/menu-qr-backend-dev-home"
-              }
-            },
-            "IamRoleLambdaExecution": {
-              "Type": "AWS::IAM::Role",
-              "Properties": {
-                "AssumeRolePolicyDocument": {
-                  "Version": "2012-10-17",
-                  "Statement": [
-                    {
-                      "Effect": "Allow",
-                      "Principal": {
-                        "Service": [
-                          "lambda.amazonaws.com"
-                        ]
-                      },
-                      "Action": [
-                        "sts:AssumeRole"
-                      ]
-                    }
-                  ]
-                },
-                "Policies": [
-                  {
-                    "PolicyName": {
-                      "Fn::Join": [
-                        "-",
-                        [
-                          "menu-qr-backend",
-                          "dev",
-                          "lambda"
-                        ]
-                      ]
-                    },
-                    "PolicyDocument": {
-                      "Version": "2012-10-17",
-                      "Statement": [
-                        {
-                          "Effect": "Allow",
-                          "Action": [
-                            "logs:CreateLogStream",
-                            "logs:CreateLogGroup",
-                            "logs:TagResource"
-                          ],
-                          "Resource": [
-                            {
-                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/menu-qr-backend-dev*:*"
-                            }
-                          ]
-                        },
-                        {
-                          "Effect": "Allow",
-                          "Action": [
-                            "logs:PutLogEvents"
-                          ],
-                          "Resource": [
-                            {
-                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/menu-qr-backend-dev*:*:*"
-                            }
-                          ]
-                        },
-                        {
-                          "Effect": "Allow",
-                          "Action": [
-                            "dynamodb:PutItem",
-                            "dynamodb:GetItem",
-                            "dynamodb:UpdateItem",
-                            "dynamodb:DeleteItem",
-                            "dynamodb:Scan",
-                            "dynamodb:Query"
-                          ],
-                          "Resource": "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable"
-                        },
-                        {
-                          "Effect": "Allow",
-                          "Action": [
-                            "execute-api:Invoke"
-                          ],
-                          "Resource": "arn:aws:execute-api:us-east-1:*:*"
-                        }
-                      ]
-                    }
-                  }
-                ],
-                "Path": "/",
-                "RoleName": {
-                  "Fn::Join": [
-                    "-",
-                    [
-                      "menu-qr-backend",
-                      "dev",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      "lambdaRole"
-                    ]
-                  ]
-                }
-              }
-            },
-            "SignupLambdaFunction": {
-              "Type": "AWS::Lambda::Function",
-              "Properties": {
-                "Code": {
-                  "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                  "S3Key": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z/menu-qr-backend.zip"
-                },
-                "Handler": "handler.signup",
-                "Runtime": "nodejs18.x",
-                "FunctionName": "menu-qr-backend-dev-signup",
-                "MemorySize": 1024,
-                "Timeout": 6,
-                "Environment": {
-                  "Variables": {
-                    "NODE_OPTIONS": "--enable-source-maps"
-                  }
-                },
-                "Role": {
-                  "Fn::GetAtt": [
-                    "IamRoleLambdaExecution",
-                    "Arn"
-                  ]
-                }
-              },
-              "DependsOn": [
-                "SignupLogGroup"
-              ]
-            },
-            "LoginLambdaFunction": {
-              "Type": "AWS::Lambda::Function",
-              "Properties": {
-                "Code": {
-                  "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                  "S3Key": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z/menu-qr-backend.zip"
-                },
-                "Handler": "handler.login",
-                "Runtime": "nodejs18.x",
-                "FunctionName": "menu-qr-backend-dev-login",
-                "MemorySize": 1024,
-                "Timeout": 6,
-                "Environment": {
-                  "Variables": {
-                    "NODE_OPTIONS": "--enable-source-maps"
-                  }
-                },
-                "Role": {
-                  "Fn::GetAtt": [
-                    "IamRoleLambdaExecution",
-                    "Arn"
-                  ]
-                }
-              },
-              "DependsOn": [
-                "LoginLogGroup"
-              ]
-            },
-            "HomeLambdaFunction": {
-              "Type": "AWS::Lambda::Function",
-              "Properties": {
-                "Code": {
-                  "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                  "S3Key": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z/menu-qr-backend.zip"
-                },
-                "Handler": "handler.home",
-                "Runtime": "nodejs18.x",
-                "FunctionName": "menu-qr-backend-dev-home",
-                "MemorySize": 1024,
-                "Timeout": 6,
-                "Environment": {
-                  "Variables": {
-                    "NODE_OPTIONS": "--enable-source-maps"
-                  }
-                },
-                "Role": {
-                  "Fn::GetAtt": [
-                    "IamRoleLambdaExecution",
-                    "Arn"
-                  ]
-                }
-              },
-              "DependsOn": [
-                "HomeLogGroup"
-              ]
-            },
-            "SignupLambdaVersionsI49PxYHbTnpdD3rD25Ejuovcp812Tg40B8BBLzkJI": {
-              "Type": "AWS::Lambda::Version",
-              "DeletionPolicy": "Retain",
-              "Properties": {
-                "FunctionName": {
-                  "Ref": "SignupLambdaFunction"
-                },
-                "CodeSha256": "bxtyXXy7tgZOj1n31QUocnZAB7H0G1id/6n19qsMjLg="
-              }
-            },
-            "LoginLambdaVersion5NGMeDPlN4JqOpMdJc2AEk8kHsKlng5G4ssBGVXKqw": {
-              "Type": "AWS::Lambda::Version",
-              "DeletionPolicy": "Retain",
-              "Properties": {
-                "FunctionName": {
-                  "Ref": "LoginLambdaFunction"
-                },
-                "CodeSha256": "bxtyXXy7tgZOj1n31QUocnZAB7H0G1id/6n19qsMjLg="
-              }
-            },
-            "HomeLambdaVersionoSeg7Cev8lqMDVIjX4WOz71OrM59IzLJuhCrbvYcDAY": {
-              "Type": "AWS::Lambda::Version",
-              "DeletionPolicy": "Retain",
-              "Properties": {
-                "FunctionName": {
-                  "Ref": "HomeLambdaFunction"
-                },
-                "CodeSha256": "bxtyXXy7tgZOj1n31QUocnZAB7H0G1id/6n19qsMjLg="
-              }
-            },
-            "ApiGatewayRestApi": {
-              "Type": "AWS::ApiGateway::RestApi",
-              "Properties": {
-                "Name": "dev-menu-qr-backend",
-                "EndpointConfiguration": {
-                  "Types": [
-                    "EDGE"
-                  ]
-                },
-                "Policy": ""
-              }
-            },
-            "ApiGatewayResourceSignup": {
-              "Type": "AWS::ApiGateway::Resource",
-              "Properties": {
-                "ParentId": {
-                  "Fn::GetAtt": [
-                    "ApiGatewayRestApi",
-                    "RootResourceId"
-                  ]
-                },
-                "PathPart": "signup",
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                }
-              }
-            },
-            "ApiGatewayResourceLogin": {
-              "Type": "AWS::ApiGateway::Resource",
-              "Properties": {
-                "ParentId": {
-                  "Fn::GetAtt": [
-                    "ApiGatewayRestApi",
-                    "RootResourceId"
-                  ]
-                },
-                "PathPart": "login",
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                }
-              }
-            },
-            "ApiGatewayResourceHome": {
-              "Type": "AWS::ApiGateway::Resource",
-              "Properties": {
-                "ParentId": {
-                  "Fn::GetAtt": [
-                    "ApiGatewayRestApi",
-                    "RootResourceId"
-                  ]
-                },
-                "PathPart": "home",
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                }
-              }
-            },
-            "ApiGatewayMethodSignupPost": {
-              "Type": "AWS::ApiGateway::Method",
-              "Properties": {
-                "HttpMethod": "POST",
-                "RequestParameters": {},
-                "ResourceId": {
-                  "Ref": "ApiGatewayResourceSignup"
-                },
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                },
-                "ApiKeyRequired": "<REDACTED>",
-                "AuthorizationType": "NONE",
-                "Integration": {
-                  "IntegrationHttpMethod": "POST",
-                  "Type": "AWS_PROXY",
-                  "Uri": {
-                    "Fn::Join": [
-                      "",
-                      [
-                        "arn:",
-                        {
-                          "Ref": "AWS::Partition"
-                        },
-                        ":apigateway:",
-                        {
-                          "Ref": "AWS::Region"
-                        },
-                        ":lambda:path/2015-03-31/functions/",
-                        {
-                          "Fn::GetAtt": [
-                            "SignupLambdaFunction",
-                            "Arn"
-                          ]
-                        },
-                        "/invocations"
-                      ]
-                    ]
-                  }
-                },
-                "MethodResponses": []
-              },
-              "DependsOn": [
-                "SignupLambdaPermissionApiGateway"
-              ]
-            },
-            "ApiGatewayMethodLoginPost": {
-              "Type": "AWS::ApiGateway::Method",
-              "Properties": {
-                "HttpMethod": "POST",
-                "RequestParameters": {},
-                "ResourceId": {
-                  "Ref": "ApiGatewayResourceLogin"
-                },
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                },
-                "ApiKeyRequired": "<REDACTED>",
-                "AuthorizationType": "NONE",
-                "Integration": {
-                  "IntegrationHttpMethod": "POST",
-                  "Type": "AWS_PROXY",
-                  "Uri": {
-                    "Fn::Join": [
-                      "",
-                      [
-                        "arn:",
-                        {
-                          "Ref": "AWS::Partition"
-                        },
-                        ":apigateway:",
-                        {
-                          "Ref": "AWS::Region"
-                        },
-                        ":lambda:path/2015-03-31/functions/",
-                        {
-                          "Fn::GetAtt": [
-                            "LoginLambdaFunction",
-                            "Arn"
-                          ]
-                        },
-                        "/invocations"
-                      ]
-                    ]
-                  }
-                },
-                "MethodResponses": []
-              },
-              "DependsOn": [
-                "LoginLambdaPermissionApiGateway"
-              ]
-            },
-            "ApiGatewayMethodHomeGet": {
-              "Type": "AWS::ApiGateway::Method",
-              "Properties": {
-                "HttpMethod": "GET",
-                "RequestParameters": {},
-                "ResourceId": {
-                  "Ref": "ApiGatewayResourceHome"
-                },
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                },
-                "ApiKeyRequired": "<REDACTED>",
-                "AuthorizationType": "NONE",
-                "Integration": {
-                  "IntegrationHttpMethod": "POST",
-                  "Type": "AWS_PROXY",
-                  "Uri": {
-                    "Fn::Join": [
-                      "",
-                      [
-                        "arn:",
-                        {
-                          "Ref": "AWS::Partition"
-                        },
-                        ":apigateway:",
-                        {
-                          "Ref": "AWS::Region"
-                        },
-                        ":lambda:path/2015-03-31/functions/",
-                        {
-                          "Fn::GetAtt": [
-                            "HomeLambdaFunction",
-                            "Arn"
-                          ]
-                        },
-                        "/invocations"
-                      ]
-                    ]
-                  }
-                },
-                "MethodResponses": []
-              },
-              "DependsOn": [
-                "HomeLambdaPermissionApiGateway"
-              ]
-            },
-            "ApiGatewayDeployment1729227979770": {
-              "Type": "AWS::ApiGateway::Deployment",
-              "Properties": {
-                "RestApiId": {
-                  "Ref": "ApiGatewayRestApi"
-                },
-                "StageName": "dev"
-              },
-              "DependsOn": [
-                "ApiGatewayMethodSignupPost",
-                "ApiGatewayMethodLoginPost",
-                "ApiGatewayMethodHomeGet"
-              ]
-            },
-            "SignupLambdaPermissionApiGateway": {
-              "Type": "AWS::Lambda::Permission",
-              "Properties": {
-                "FunctionName": {
-                  "Fn::GetAtt": [
-                    "SignupLambdaFunction",
-                    "Arn"
-                  ]
-                },
-                "Action": "lambda:InvokeFunction",
-                "Principal": "apigateway.amazonaws.com",
-                "SourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":execute-api:",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      ":",
-                      {
-                        "Ref": "AWS::AccountId"
-                      },
-                      ":",
-                      {
-                        "Ref": "ApiGatewayRestApi"
-                      },
-                      "/*/*"
-                    ]
-                  ]
-                }
-              }
-            },
-            "LoginLambdaPermissionApiGateway": {
-              "Type": "AWS::Lambda::Permission",
-              "Properties": {
-                "FunctionName": {
-                  "Fn::GetAtt": [
-                    "LoginLambdaFunction",
-                    "Arn"
-                  ]
-                },
-                "Action": "lambda:InvokeFunction",
-                "Principal": "apigateway.amazonaws.com",
-                "SourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":execute-api:",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      ":",
-                      {
-                        "Ref": "AWS::AccountId"
-                      },
-                      ":",
-                      {
-                        "Ref": "ApiGatewayRestApi"
-                      },
-                      "/*/*"
-                    ]
-                  ]
-                }
-              }
-            },
-            "HomeLambdaPermissionApiGateway": {
-              "Type": "AWS::Lambda::Permission",
-              "Properties": {
-                "FunctionName": {
-                  "Fn::GetAtt": [
-                    "HomeLambdaFunction",
-                    "Arn"
-                  ]
-                },
-                "Action": "lambda:InvokeFunction",
-                "Principal": "apigateway.amazonaws.com",
-                "SourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":execute-api:",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      ":",
-                      {
-                        "Ref": "AWS::AccountId"
-                      },
-                      ":",
-                      {
-                        "Ref": "ApiGatewayRestApi"
-                      },
-                      "/*/*"
-                    ]
-                  ]
-                }
-              }
-            },
-            "UsersTable": {
-              "Type": "AWS::DynamoDB::Table",
-              "Properties": {
-                "TableName": "MenuQrUsersTable",
-                "AttributeDefinitions": [
-                  {
-                    "AttributeName": "userId",
-                    "AttributeType": "S"
-                  }
-                ],
-                "KeySchema": [
-                  {
-                    "AttributeName": "userId",
-                    "KeyType": "HASH"
-                  }
-                ],
-                "BillingMode": "PAY_PER_REQUEST"
-              }
-            }
-          },
-          "Outputs": {
-            "ServerlessDeploymentBucketName": {
-              "Value": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-              "Export": {
-                "Name": "sls-menu-qr-backend-dev-ServerlessDeploymentBucketName"
-              }
-            },
-            "SignupLambdaFunctionQualifiedArn": {
-              "Description": "Current Lambda function version",
-              "Value": {
-                "Ref": "SignupLambdaVersionsI49PxYHbTnpdD3rD25Ejuovcp812Tg40B8BBLzkJI"
-              },
-              "Export": {
-                "Name": "sls-menu-qr-backend-dev-SignupLambdaFunctionQualifiedArn"
-              }
-            },
-            "LoginLambdaFunctionQualifiedArn": {
-              "Description": "Current Lambda function version",
-              "Value": {
-                "Ref": "LoginLambdaVersion5NGMeDPlN4JqOpMdJc2AEk8kHsKlng5G4ssBGVXKqw"
-              },
-              "Export": {
-                "Name": "sls-menu-qr-backend-dev-LoginLambdaFunctionQualifiedArn"
-              }
-            },
-            "HomeLambdaFunctionQualifiedArn": {
-              "Description": "Current Lambda function version",
-              "Value": {
-                "Ref": "HomeLambdaVersionoSeg7Cev8lqMDVIjX4WOz71OrM59IzLJuhCrbvYcDAY"
-              },
-              "Export": {
-                "Name": "sls-menu-qr-backend-dev-HomeLambdaFunctionQualifiedArn"
-              }
-            },
-            "ServiceEndpoint": {
-              "Description": "URL of the service endpoint",
-              "Value": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "https://",
-                    {
-                      "Ref": "ApiGatewayRestApi"
-                    },
-                    ".execute-api.",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    ".",
-                    {
-                      "Ref": "AWS::URLSuffix"
-                    },
-                    "/dev"
-                  ]
-                ]
-              },
-              "Export": {
-                "Name": "sls-menu-qr-backend-dev-ServiceEndpoint"
-              }
-            }
-          }
-        },
-        "vpc": {}
+        "versionFunctions": true
       },
       "functions": {
         "signup": {
@@ -685,20 +607,18 @@
               "http": {
                 "path": "signup",
                 "method": "post",
-                "integration": "AWS_PROXY"
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
               }
             }
           ],
-          "name": "menu-qr-backend-dev-signup",
-          "environment": {
-            "NODE_OPTIONS": "--enable-source-maps"
-          },
-          "package": {},
-          "memory": 1024,
-          "timeout": 6,
-          "runtime": "nodejs18.x",
-          "vpc": {},
-          "versionLogicalId": "SignupLambdaVersionsI49PxYHbTnpdD3rD25Ejuovcp812Tg40B8BBLzkJI"
+          "name": "menu-qr-backend-dev-signup"
         },
         "login": {
           "handler": "handler.login",
@@ -707,20 +627,18 @@
               "http": {
                 "path": "login",
                 "method": "post",
-                "integration": "AWS_PROXY"
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
               }
             }
           ],
-          "name": "menu-qr-backend-dev-login",
-          "environment": {
-            "NODE_OPTIONS": "--enable-source-maps"
-          },
-          "package": {},
-          "memory": 1024,
-          "timeout": 6,
-          "runtime": "nodejs18.x",
-          "vpc": {},
-          "versionLogicalId": "LoginLambdaVersion5NGMeDPlN4JqOpMdJc2AEk8kHsKlng5G4ssBGVXKqw"
+          "name": "menu-qr-backend-dev-login"
         },
         "home": {
           "handler": "handler.home",
@@ -729,20 +647,118 @@
               "http": {
                 "path": "home",
                 "method": "get",
-                "integration": "AWS_PROXY"
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
               }
             }
           ],
-          "name": "menu-qr-backend-dev-home",
-          "environment": {
-            "NODE_OPTIONS": "--enable-source-maps"
-          },
-          "package": {},
-          "memory": 1024,
-          "timeout": 6,
-          "runtime": "nodejs18.x",
-          "vpc": {},
-          "versionLogicalId": "HomeLambdaVersionoSeg7Cev8lqMDVIjX4WOz71OrM59IzLJuhCrbvYcDAY"
+          "name": "menu-qr-backend-dev-home"
+        },
+        "menu": {
+          "handler": "handler.menu",
+          "events": [
+            {
+              "http": {
+                "path": "menu",
+                "method": "get",
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
+              }
+            }
+          ],
+          "name": "menu-qr-backend-dev-menu"
+        },
+        "createCategory": {
+          "handler": "handler.createCategory",
+          "events": [
+            {
+              "http": {
+                "path": "menu/category",
+                "method": "post",
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
+              }
+            }
+          ],
+          "name": "menu-qr-backend-dev-createCategory"
+        },
+        "createProduct": {
+          "handler": "handler.createProduct",
+          "events": [
+            {
+              "http": {
+                "path": "menu/category/{categoryId}/product",
+                "method": "post",
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
+              }
+            }
+          ],
+          "name": "menu-qr-backend-dev-createProduct"
+        },
+        "getCategories": {
+          "handler": "handler.getCategories",
+          "events": [
+            {
+              "http": {
+                "path": "categories/{userId}",
+                "method": "get",
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
+              }
+            }
+          ],
+          "name": "menu-qr-backend-dev-getCategories"
+        },
+        "getProducts": {
+          "handler": "handler.getProducts",
+          "events": [
+            {
+              "http": {
+                "path": "menu/category/{categoryId}/products",
+                "method": "get",
+                "cors": {
+                  "origin": "https://dljrvybt2jogj.cloudfront.net",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "allowCredentials": "<REDACTED>"
+                }
+              }
+            }
+          ],
+          "name": "menu-qr-backend-dev-getProducts"
         }
       },
       "resources": {
@@ -753,31 +769,80 @@
               "TableName": "MenuQrUsersTable",
               "AttributeDefinitions": [
                 {
-                  "AttributeName": "userId",
+                  "AttributeName": "PK",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "SK",
                   "AttributeType": "S"
                 }
               ],
               "KeySchema": [
                 {
-                  "AttributeName": "userId",
+                  "AttributeName": "PK",
                   "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "SK",
+                  "KeyType": "RANGE"
                 }
               ],
-              "BillingMode": "PAY_PER_REQUEST"
+              "ProvisionedThroughput": {
+                "ReadCapacityUnits": 5,
+                "WriteCapacityUnits": 5
+              }
+            }
+          },
+          "GatewayResponse": {
+            "Type": "AWS::ApiGateway::GatewayResponse",
+            "Properties": {
+              "ResponseParameters": {
+                "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'",
+                "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'",
+                "gatewayresponse.header.Access-Control-Allow-Credentials": "<REDACTED>"
+              },
+              "ResponseType": "DEFAULT_4XX",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
             }
           }
-        },
-        "Outputs": {}
+        }
+      },
+      "plugins": [
+        "serverless-offline",
+        "serverless-dynamodb-local"
+      ],
+      "custom": {
+        "defaultRegion": "us-east-1",
+        "dynamodb": {
+          "stages": [
+            "dev"
+          ],
+          "start": {
+            "port": 8000,
+            "inMemory": true,
+            "migrate": true,
+            "seed": true,
+            "noStart": true
+          }
+        }
       }
     },
-    "serviceRawFile": "service: menu-qr-backend\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: us-east-1\n  iamRoleStatements:\n    - Effect: \"Allow\"\n      Action:\n        - dynamodb:PutItem\n        - dynamodb:GetItem\n        - dynamodb:UpdateItem\n        - dynamodb:DeleteItem\n        - dynamodb:Scan\n        - dynamodb:Query\n      Resource: \n        - \"arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable\"\n#        - \"arn:aws:dynamodb:us-east-1:*:table/MenuQrUsersTable/index/email-index\"\n    - Effect: \"Allow\"\n      Action:\n        - execute-api:Invoke\n      Resource: \n        - \"arn:aws:execute-api:us-east-1:*:*\"\n\nfunctions:\n  signup:\n    handler: handler.signup\n    events:\n      - http:\n          path: signup\n          method: post\n          \n  login:\n    handler: handler.login\n    events:\n      - http:\n          path: login\n          method: post\n\n  \n  home:\n    handler: handler.home\n    events:\n      - http:\n          path: home\n          method: get\n\nresources:\n  Resources:\n    UsersTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: MenuQrUsersTable\n        AttributeDefinitions:\n          - AttributeName: userId\n            AttributeType: S\n        KeySchema:\n          - AttributeName: userId\n            KeyType: HASH\n        BillingMode: PAY_PER_REQUEST\n\n#plugins:\n#  - serverless-dotenv-plugin\n\n# Añade variables de entorno como la clave secreta para JWT\n#custom:\n#  environment:\n#    JWT_SECRET: ${env:JWT_SECRET}\n",
+    "serviceRawFile": "service: menu-qr-backend\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: ${opt:region, self:custom.defaultRegion}\n\n  iamRoleStatements:\n    - Effect: Allow\n      Action:\n        - dynamodb:PutItem\n        - dynamodb:GetItem\n        - dynamodb:UpdateItem\n        - dynamodb:DeleteItem\n        - dynamodb:Scan\n        - dynamodb:Query\n      Resource:\n        - arn:aws:dynamodb:${self:provider.region}:*:table/MenuQrUsersTable\n    - Effect: Allow\n      Action:\n        - execute-api:Invoke\n      Resource:\n        - \"arn:aws:execute-api:${self:provider.region}:*:*\"\n\nfunctions:\n  signup:\n    handler: handler.signup\n    events:\n      - http:\n          path: signup\n          method: post\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  login:\n    handler: handler.login\n    events:\n      - http:\n          path: login\n          method: post\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  home:\n    handler: handler.home\n    events:\n      - http:\n          path: home\n          method: get\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  menu:\n    handler: handler.menu\n    events:\n      - http:\n          path: menu\n          method: get\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  createCategory:\n    handler: handler.createCategory\n    events:\n      - http:\n          path: menu/category\n          method: post\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  createProduct:\n    handler: handler.createProduct\n    events:\n      - http:\n          path: menu/category/{categoryId}/product\n          method: post\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  getCategories:\n    handler: handler.getCategories\n    events:\n      - http:\n          path: categories/{userId}\n          method: get\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\n  getProducts:\n    handler: handler.getProducts\n    events:\n      - http:\n          path: menu/category/{categoryId}/products\n          method: get\n          cors:\n            origin: 'https://dljrvybt2jogj.cloudfront.net'\n            headers:\n              - Content-Type\n              - Authorization\n            allowCredentials: true\n\nresources:\n  Resources:\n    UsersTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: MenuQrUsersTable\n        AttributeDefinitions:\n          - AttributeName: PK\n            AttributeType: S\n          - AttributeName: SK\n            AttributeType: S\n        KeySchema:\n          - AttributeName: PK\n            KeyType: HASH\n          - AttributeName: SK\n            KeyType: RANGE\n        BillingMode: PAY_PER_REQUEST\n\n    GatewayResponse:\n      Type: AWS::ApiGateway::GatewayResponse\n      Properties:\n        ResponseParameters:\n          \"gatewayresponse.header.Access-Control-Allow-Origin\": \"'https://dljrvybt2jogj.cloudfront.net'\"\n          \"gatewayresponse.header.Access-Control-Allow-Headers\": \"'Content-Type, Authorization'\"\n          \"gatewayresponse.header.Access-Control-Allow-Methods\": \"'GET, POST, OPTIONS'\"\n          \"gatewayresponse.header.Access-Control-Allow-Credentials\": \"'true'\"\n        ResponseType: DEFAULT_4XX\n        RestApiId:\n          Ref: ApiGatewayRestApi\n\nplugins:\n  - serverless-offline\n  - serverless-dynamodb-local\n\ncustom:\n  defaultRegion: us-east-1\n\n  dynamodb:\n    stages:\n      - dev\n    start:\n      port: 8000\n      inMemory: true\n      migrate: true\n      seed: true\n      noStart: true  # No intentará iniciar DynamoDB si ya está corriendo en Docker\n",
     "command": [
-      "deploy"
+      "offline",
+      "start"
     ],
     "options": {},
-    "error": null,
+    "error": {
+      "message": "The Access Key ID or security token is invalid.",
+      "stack": "UnrecognizedClientException: The Access Key ID or security token is invalid.\n    at Request.extractError (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/protocol/json.js:80:27)\n    at Request.callListeners (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/sequential_executor.js:106:20)\n    at Request.emit (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/sequential_executor.js:78:10)\n    at Request.emit (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:686:14)\n    at Request.transition (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:22:10)\n    at AcceptorStateMachine.runTo (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/state_machine.js:14:12)\n    at /home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/state_machine.js:26:10\n    at Request.<anonymous> (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:38:9)\n    at Request.<anonymous> (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:688:12)\n    at Request.callListeners (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/sequential_executor.js:116:18)\n    at Request.emit (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/sequential_executor.js:78:10)\n    at Request.emit (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:686:14)\n    at Request.transition (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:22:10)\n    at AcceptorStateMachine.runTo (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/state_machine.js:14:12)\n    at /home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/state_machine.js:26:10\n    at Request.<anonymous> (/home/dannysilver/menu-qr/backend/node_modules/aws-sdk/lib/request.js:38:9)",
+      "code": "UnrecognizedClientException"
+    },
     "params": {},
-    "machineId": "a0e68928fefc0c89abd098a134c3988e",
+    "machineId": "6270faa67fd44e892e8b9437e3327358",
     "stage": "dev",
     "accessKeyV2": "<REDACTED>",
     "accessKeyV1": "<REDACTED>",
@@ -800,30 +865,29 @@
     "serviceProviderAwsCredentials": "<REDACTED>",
     "serviceProviderAwsAccountId": "207567761860",
     "projectType": "traditional",
-    "versionSf": "4.4.6",
+    "versionSf": "4.4.7",
     "serviceProviderAwsCfStackName": "menu-qr-backend-dev",
-    "integrations": {},
     "serviceUniqueId": "arn:aws:cloudformation:us-east-1:207567761860:stack/menu-qr-backend-dev/e3eaf2d0-8c2c-11ef-8b94-12c320c8f3df",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:207567761860:stack/menu-qr-backend-dev/e3eaf2d0-8c2c-11ef-8b94-12c320c8f3df",
     "serviceProviderAwsCfStackCreated": "2024-10-17T02:09:50.323Z",
-    "serviceProviderAwsCfStackUpdated": "2024-10-18T05:07:31.764Z",
+    "serviceProviderAwsCfStackUpdated": "2024-10-21T14:56:34.547Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "HomeLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:207567761860:function:menu-qr-backend-dev-home:3",
+        "OutputValue": "arn:aws:lambda:us-east-1:207567761860:function:menu-qr-backend-dev-home:7",
         "Description": "Current Lambda function version",
         "ExportName": "sls-menu-qr-backend-dev-HomeLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "SignupLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:207567761860:function:menu-qr-backend-dev-signup:8",
+        "OutputValue": "arn:aws:lambda:us-east-1:207567761860:function:menu-qr-backend-dev-signup:12",
         "Description": "Current Lambda function version",
         "ExportName": "sls-menu-qr-backend-dev-SignupLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "LoginLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-1:207567761860:function:menu-qr-backend-dev-login:8",
+        "OutputValue": "arn:aws:lambda:us-east-1:207567761860:function:menu-qr-backend-dev-login:12",
         "Description": "Current Lambda function version",
         "ExportName": "sls-menu-qr-backend-dev-LoginLambdaFunctionQualifiedArn"
       },

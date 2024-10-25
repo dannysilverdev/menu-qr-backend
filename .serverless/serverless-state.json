@@ -142,7 +142,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/dev/1729522381893-2024-10-21T14:53:01.893Z/menu-qr-backend.zip"
               },
               "Handler": "handler.signup",
               "Runtime": "nodejs18.x",
@@ -170,7 +170,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/dev/1729522381893-2024-10-21T14:53:01.893Z/menu-qr-backend.zip"
               },
               "Handler": "handler.login",
               "Runtime": "nodejs18.x",
@@ -198,7 +198,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/dev/1729522381893-2024-10-21T14:53:01.893Z/menu-qr-backend.zip"
               },
               "Handler": "handler.home",
               "Runtime": "nodejs18.x",
@@ -221,34 +221,34 @@
               "HomeLogGroup"
             ]
           },
-          "SignupLambdaVersionsI49PxYHbTnpdD3rD25Ejuovcp812Tg40B8BBLzkJI": {
+          "SignupLambdaVersionbxiJoV5N14MLAHyyuvyfY57ZculkB9r62s9xWNTNkU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "SignupLambdaFunction"
               },
-              "CodeSha256": "bxtyXXy7tgZOj1n31QUocnZAB7H0G1id/6n19qsMjLg="
+              "CodeSha256": "dDRMK/91X+L1F/VClFcJrRsEkJwbGObPn7pPcs8yEdc="
             }
           },
-          "LoginLambdaVersion5NGMeDPlN4JqOpMdJc2AEk8kHsKlng5G4ssBGVXKqw": {
+          "LoginLambdaVersionrnoKcCFacu4iggseyZXBJYQuMn7A0s25cg77nxfVNI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "LoginLambdaFunction"
               },
-              "CodeSha256": "bxtyXXy7tgZOj1n31QUocnZAB7H0G1id/6n19qsMjLg="
+              "CodeSha256": "dDRMK/91X+L1F/VClFcJrRsEkJwbGObPn7pPcs8yEdc="
             }
           },
-          "HomeLambdaVersionoSeg7Cev8lqMDVIjX4WOz71OrM59IzLJuhCrbvYcDAY": {
+          "HomeLambdaVersionBKtggH6tEXnFi4hIPaJ5BOQAwdqwQgRx9FLAk": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HomeLambdaFunction"
               },
-              "CodeSha256": "bxtyXXy7tgZOj1n31QUocnZAB7H0G1id/6n19qsMjLg="
+              "CodeSha256": "dDRMK/91X+L1F/VClFcJrRsEkJwbGObPn7pPcs8yEdc="
             }
           },
           "ApiGatewayRestApi": {
@@ -303,6 +303,147 @@
                 ]
               },
               "PathPart": "home",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodSignupOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true,
+                    "method.response.header.Access-Control-Allow-Credentials": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'",
+                      "method.response.header.Access-Control-Allow-Credentials": "'true'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceSignup"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodLoginOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true,
+                    "method.response.header.Access-Control-Allow-Credentials": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'",
+                      "method.response.header.Access-Control-Allow-Credentials": "'true'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceLogin"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodHomeOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true,
+                    "method.response.header.Access-Control-Allow-Credentials": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'",
+                      "method.response.header.Access-Control-Allow-Credentials": "'true'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceHome"
+              },
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               }
@@ -446,7 +587,7 @@
               "HomeLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1729227979770": {
+          "ApiGatewayDeployment1729522373200": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -455,6 +596,9 @@
               "StageName": "dev"
             },
             "DependsOn": [
+              "ApiGatewayMethodSignupOptions",
+              "ApiGatewayMethodLoginOptions",
+              "ApiGatewayMethodHomeOptions",
               "ApiGatewayMethodSignupPost",
               "ApiGatewayMethodLoginPost",
               "ApiGatewayMethodHomeGet"
@@ -589,6 +733,21 @@
               ],
               "BillingMode": "PAY_PER_REQUEST"
             }
+          },
+          "GatewayResponse": {
+            "Type": "AWS::ApiGateway::GatewayResponse",
+            "Properties": {
+              "ResponseParameters": {
+                "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+                "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'",
+                "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'",
+                "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
+              },
+              "ResponseType": "DEFAULT_4XX",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
           }
         },
         "Outputs": {
@@ -601,7 +760,7 @@
           "SignupLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "SignupLambdaVersionsI49PxYHbTnpdD3rD25Ejuovcp812Tg40B8BBLzkJI"
+              "Ref": "SignupLambdaVersionbxiJoV5N14MLAHyyuvyfY57ZculkB9r62s9xWNTNkU"
             },
             "Export": {
               "Name": "sls-menu-qr-backend-dev-SignupLambdaFunctionQualifiedArn"
@@ -610,7 +769,7 @@
           "LoginLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "LoginLambdaVersion5NGMeDPlN4JqOpMdJc2AEk8kHsKlng5G4ssBGVXKqw"
+              "Ref": "LoginLambdaVersionrnoKcCFacu4iggseyZXBJYQuMn7A0s25cg77nxfVNI"
             },
             "Export": {
               "Name": "sls-menu-qr-backend-dev-LoginLambdaFunctionQualifiedArn"
@@ -619,7 +778,7 @@
           "HomeLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HomeLambdaVersionoSeg7Cev8lqMDVIjX4WOz71OrM59IzLJuhCrbvYcDAY"
+              "Ref": "HomeLambdaVersionBKtggH6tEXnFi4hIPaJ5BOQAwdqwQgRx9FLAk"
             },
             "Export": {
               "Name": "sls-menu-qr-backend-dev-HomeLambdaFunctionQualifiedArn"
@@ -655,6 +814,25 @@
       },
       "vpc": {}
     },
+    "custom": {
+      "defaultRegion": "us-east-1",
+      "dynamodb": {
+        "stages": [
+          "dev"
+        ],
+        "start": {
+          "port": 8000,
+          "inMemory": true,
+          "migrate": true,
+          "seed": true,
+          "noStart": true
+        }
+      }
+    },
+    "plugins": [
+      "serverless-offline",
+      "serverless-dynamodb-local"
+    ],
     "pluginsData": {},
     "functions": {
       "signup": {
@@ -664,6 +842,22 @@
             "http": {
               "path": "signup",
               "method": "post",
+              "cors": {
+                "origin": "https://dljrvybt2jogj.cloudfront.net",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Amz-Date",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent"
+                ],
+                "allowCredentials": true
+              },
               "integration": "AWS_PROXY"
             }
           }
@@ -677,7 +871,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "SignupLambdaVersionsI49PxYHbTnpdD3rD25Ejuovcp812Tg40B8BBLzkJI"
+        "versionLogicalId": "SignupLambdaVersionbxiJoV5N14MLAHyyuvyfY57ZculkB9r62s9xWNTNkU"
       },
       "login": {
         "handler": "handler.login",
@@ -686,6 +880,22 @@
             "http": {
               "path": "login",
               "method": "post",
+              "cors": {
+                "origin": "https://dljrvybt2jogj.cloudfront.net",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Amz-Date",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent"
+                ],
+                "allowCredentials": true
+              },
               "integration": "AWS_PROXY"
             }
           }
@@ -699,7 +909,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "LoginLambdaVersion5NGMeDPlN4JqOpMdJc2AEk8kHsKlng5G4ssBGVXKqw"
+        "versionLogicalId": "LoginLambdaVersionrnoKcCFacu4iggseyZXBJYQuMn7A0s25cg77nxfVNI"
       },
       "home": {
         "handler": "handler.home",
@@ -708,6 +918,22 @@
             "http": {
               "path": "home",
               "method": "get",
+              "cors": {
+                "origin": "https://dljrvybt2jogj.cloudfront.net",
+                "methods": [
+                  "OPTIONS",
+                  "GET"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Amz-Date",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent"
+                ],
+                "allowCredentials": true
+              },
               "integration": "AWS_PROXY"
             }
           }
@@ -721,7 +947,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "HomeLambdaVersionoSeg7Cev8lqMDVIjX4WOz71OrM59IzLJuhCrbvYcDAY"
+        "versionLogicalId": "HomeLambdaVersionBKtggH6tEXnFi4hIPaJ5BOQAwdqwQgRx9FLAk"
       }
     },
     "resources": {
@@ -744,6 +970,21 @@
             ],
             "BillingMode": "PAY_PER_REQUEST"
           }
+        },
+        "GatewayResponse": {
+          "Type": "AWS::ApiGateway::GatewayResponse",
+          "Properties": {
+            "ResponseParameters": {
+              "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
+              "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'",
+              "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'",
+              "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
+            },
+            "ResponseType": "DEFAULT_4XX",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
         }
       },
       "Outputs": {}
@@ -760,6 +1001,12 @@
       },
       "resources": {
         "$ref": "$[\"service\"][\"resources\"]"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
       }
     },
     "appId": null,
@@ -767,7 +1014,7 @@
     "layers": {}
   },
   "package": {
-    "artifactDirectoryName": "serverless/menu-qr-backend/dev/1729227993972-2024-10-18T05:06:33.972Z",
+    "artifactDirectoryName": "serverless/menu-qr-backend/dev/1729522381893-2024-10-21T14:53:01.893Z",
     "artifact": "menu-qr-backend.zip"
   }
 }

@@ -3,9 +3,10 @@ service: menu-qr-backend
 provider:
   name: aws
   runtime: nodejs18.x
-  region: us-east-1
+  region: ${opt:region, self:custom.defaultRegion}
+
   iamRoleStatements:
-    - Effect: "Allow"
+    - Effect: Allow
       Action:
         - dynamodb:PutItem
         - dynamodb:GetItem
@@ -13,14 +14,13 @@ provider:
         - dynamodb:DeleteItem
         - dynamodb:Scan
         - dynamodb:Query
-      Resource: 
-        - "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable"
-#        - "arn:aws:dynamodb:us-east-1:*:table/MenuQrUsersTable/index/email-index"
-    - Effect: "Allow"
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/MenuQrUsersTable
+    - Effect: Allow
       Action:
         - execute-api:Invoke
-      Resource: 
-        - "arn:aws:execute-api:us-east-1:*:*"
+      Resource:
+        - "arn:aws:execute-api:${self:provider.region}:*:*"
 
 functions:
   signup:
@@ -29,21 +29,103 @@ functions:
       - http:
           path: signup
           method: post
-          
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
   login:
     handler: handler.login
     events:
       - http:
           path: login
           method: post
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
 
-  
   home:
     handler: handler.home
     events:
       - http:
           path: home
           method: get
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  menu:
+    handler: handler.menu
+    events:
+      - http:
+          path: menu
+          method: get
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  createCategory:
+    handler: handler.createCategory
+    events:
+      - http:
+          path: menu/category
+          method: post
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  createProduct:
+    handler: handler.createProduct
+    events:
+      - http:
+          path: menu/category/{categoryId}/product
+          method: post
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  getCategories:
+    handler: handler.getCategories
+    events:
+      - http:
+          path: categories/{userId}
+          method: get
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  getProducts:
+    handler: handler.getProducts
+    events:
+      - http:
+          path: menu/category/{categoryId}/products
+          method: get
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
 
 resources:
   Resources:
@@ -52,17 +134,42 @@ resources:
       Properties:
         TableName: MenuQrUsersTable
         AttributeDefinitions:
-          - AttributeName: userId
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
             AttributeType: S
         KeySchema:
-          - AttributeName: userId
+          - AttributeName: PK
             KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
 
-#plugins:
-#  - serverless-dotenv-plugin
+    GatewayResponse:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'"
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'"
+          "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'"
+          "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
 
-# Añade variables de entorno como la clave secreta para JWT
-#custom:
-#  environment:
-#    JWT_SECRET: ${env:JWT_SECRET}
+plugins:
+  - serverless-offline
+  - serverless-dynamodb-local
+
+custom:
+  defaultRegion: us-east-1
+
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: true
+      noStart: true  # No intentará iniciar DynamoDB si ya está corriendo en Docker
