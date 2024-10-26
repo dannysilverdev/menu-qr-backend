@@ -176,7 +176,6 @@ export const login: APIGatewayProxyHandler = async (event) => {
     }
 };
 
-
 // Función para crear una categoría
 export const createCategory: APIGatewayProxyHandler = async (event) => {
     const { userId, categoryName } = JSON.parse(event.body || '{}');
@@ -196,59 +195,88 @@ export const createCategory: APIGatewayProxyHandler = async (event) => {
         await dynamoDb.put(params).promise();
         return {
             statusCode: 201,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Category created successfully', categoryId }),
+            body: JSON.stringify({
+                message: 'Category created successfully',
+                categoryId, // Devuelve el ID de la categoría creada
+                categoryName // Incluye el nombre de la categoría en la respuesta
+            }),
         };
     } catch (error) {
         return {
             statusCode: 500,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Error creating category', error: error instanceof Error ? error.message : 'Unknown error' }),
+            body: JSON.stringify({
+                message: 'Error creating category',
+                error: error instanceof Error ? error.message : 'Unknown error',
+            }),
         };
     }
 };
 
-// Función para crear un producto
+
+// Función para crear un producto en una categoría
 export const createProduct: APIGatewayProxyHandler = async (event) => {
     const { userId, categoryId, productName, price, description } = JSON.parse(event.body || '{}');
-    const productId = uuidv4(); // Generar un ID único para el producto
 
+    if (!userId || !categoryId || !productName || !price) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'userId, categoryId, productName, and price are required' }),
+        };
+    }
+
+    // Verificar si la categoría existe
     const params = {
         TableName: USERS_TABLE,
-        Item: {
-            PK: `USER#${userId}`,  // Clave primaria del usuario
-            SK: `CATEGORY#${categoryId}#PRODUCT#${productId}`, // Clave secundaria para el producto
-            productName,
-            price,
-            description,
-            createdAt: new Date().toISOString(), // Fecha de creación
+        Key: {
+            PK: `USER#${userId}`,
+            SK: `CATEGORY#${categoryId}`,
         },
     };
 
     try {
-        await dynamoDb.put(params).promise();
+        const { Item } = await dynamoDb.get(params).promise();
+
+        if (!Item) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ message: 'Category not found' }),
+            };
+        }
+
+        const productId = uuidv4(); // Generar un ID único para el producto
+        const productParams = {
+            TableName: USERS_TABLE,
+            Item: {
+                PK: `USER#${userId}`,
+                SK: `CATEGORY#${categoryId}#PRODUCT#${productId}`,
+                productName,
+                price,
+                description,
+                createdAt: new Date().toISOString(),
+            },
+        };
+
+        await dynamoDb.put(productParams).promise();
         return {
             statusCode: 201,
-            headers: corsHeaders,
             body: JSON.stringify({ message: 'Product created successfully', productId }),
         };
     } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
         return {
             statusCode: 500,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Error creating product', error: error instanceof Error ? error.message : 'Unknown error' }),
+            body: JSON.stringify({ message: 'Error creating product', error: errorMessage }),
         };
     }
 };
 
-// Función para obtener todas las categorías de un usuario
+
 export const getCategories: APIGatewayProxyHandler = async (event) => {
-    const { userId } = event.pathParameters || {}; // Obtener el userId
+    const { userId } = event.pathParameters || {};
 
     if (!userId) {
         return {
             statusCode: 400,
-            headers: corsHeaders,
             body: JSON.stringify({ message: 'userId is required' }),
         };
     }
@@ -257,80 +285,30 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
         TableName: USERS_TABLE,
         KeyConditionExpression: 'PK = :userId AND begins_with(SK, :categoryPrefix)',
         ExpressionAttributeValues: {
-            ':userId': `USER#${userId}`,          // Usar la PK correcta
-            ':categoryPrefix': 'CATEGORY#', // Usar un prefijo para la SK
-        },
-    };
-
-    try {
-        const result = await dynamoDb.query(params).promise();
-
-        if (!result.Items || result.Items.length === 0) {
-            return {
-                statusCode: 200,
-                headers: corsHeaders,
-                body: JSON.stringify({ categories: [] }), // Devuelve un array vacío si no hay categorías
-            };
-        }
-
-        return {
-            statusCode: 200,
-            headers: corsHeaders,
-            body: JSON.stringify({ categories: result.Items }),
-        };
-    } catch (error) {
-        console.error('Error fetching categories:', error); // Añadir log para más detalles
-        return {
-            statusCode: 500,
-            headers: corsHeaders,
-            body: JSON.stringify({
-                message: 'Could not retrieve categories',
-                error: error instanceof Error ? error.message : 'Unknown error',
-            }),
-        };
-    }
-};
-
-// Función para obtener los productos de una categoría específica
-export const getProducts: APIGatewayProxyHandler = async (event) => {
-    const { userId, categoryId } = event.pathParameters || {};
-
-    if (!userId || !categoryId) {
-        return {
-            statusCode: 400,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'userId and categoryId are required' }),
-        };
-    }
-
-    const params = {
-        TableName: USERS_TABLE,
-        KeyConditionExpression: 'PK = :userId and begins_with(SK, :productPrefix)',
-        ExpressionAttributeValues: {
             ':userId': `USER#${userId}`,
-            ':productPrefix': `CATEGORY#${categoryId}#PRODUCT#`,
+            ':categoryPrefix': 'CATEGORY#',
         },
     };
 
     try {
         const result = await dynamoDb.query(params).promise();
-        if (!result.Items || result.Items.length === 0) {
-            return {
-                statusCode: 404,
-                headers: corsHeaders,
-                body: JSON.stringify({ message: 'No products found' }),
-            };
-        }
+
         return {
             statusCode: 200,
-            headers: corsHeaders,
-            body: JSON.stringify({ products: result.Items }),
+            body: JSON.stringify({ categories: result.Items || [] }), // Asegúrate de devolver los Items
         };
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error fetching categories:', errorMessage); // Agregar un log para el error
         return {
             statusCode: 500,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Could not retrieve products', error: error instanceof Error ? error.message : 'Unknown error' }),
+            body: JSON.stringify({ message: 'Could not retrieve categories', error: errorMessage }),
         };
     }
 };
+
+
+
+
+
+
