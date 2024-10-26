@@ -307,7 +307,154 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
     }
 };
 
+export const getProducts: APIGatewayProxyHandler = async (event) => {
+    const { categoryId } = event.pathParameters || {};
 
+    if (!categoryId) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Category ID is required' }),
+        };
+    }
+
+    const params = {
+        TableName: USERS_TABLE,
+        KeyConditionExpression: 'PK = :userId AND begins_with(SK, :categoryPrefix)',
+        ExpressionAttributeValues: {
+            ':userId': `USER#${event.requestContext.identity.cognitoIdentityId}`,
+            ':categoryPrefix': `CATEGORY#${categoryId}#PRODUCT#`,
+        },
+    };
+
+    try {
+        const result = await dynamoDb.query(params).promise();
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ products: result.Items || [] }),
+        };
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Could not retrieve products' }),
+        };
+    }
+};
+
+// Eliminar categoría
+export const deleteCategory: APIGatewayProxyHandler = async (event) => {
+    const { categoryId } = event.pathParameters || {};
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const token = authHeader.split(' ')[1];
+    let userId;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+        userId = decoded.userId; // Obtener el userId del token
+    } catch (error) {
+        return {
+            statusCode: 403,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    if (!categoryId) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Category ID is required' }),
+        };
+    }
+
+    const params = {
+        TableName: USERS_TABLE,
+        Key: {
+            PK: `USER#${userId}`, // Usar el userId del token
+            SK: `CATEGORY#${categoryId}`, // Verifica que el SK sea correcto
+        },
+    };
+
+    try {
+        console.log('Deleting category with params:', params);
+        await dynamoDb.delete(params).promise();
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'Category deleted successfully' }),
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Error deleting category:', errorMessage);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Error deleting category', error: errorMessage }),
+        };
+    }
+};
+
+
+// Eliminar producto
+export const deleteProduct: APIGatewayProxyHandler = async (event) => {
+    const { categoryId, productId } = event.pathParameters || {};
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const token = authHeader.split(' ')[1];
+    let userId;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+        userId = decoded.userId; // Obtener el userId del token
+    } catch (error) {
+        return {
+            statusCode: 403,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    if (!categoryId || !productId) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Category ID and Product ID are required' }),
+        };
+    }
+
+    const params = {
+        TableName: USERS_TABLE,
+        Key: {
+            PK: `USER#${userId}`,
+            SK: `CATEGORY#${categoryId}#PRODUCT#${productId}`,
+        },
+    };
+
+    try {
+        await dynamoDb.delete(params).promise();
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'Product deleted successfully' }),
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Error deleting product:', errorMessage);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Error deleting product', error: errorMessage }),
+        };
+    }
+};
 
 
 

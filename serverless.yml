@@ -101,6 +101,32 @@ functions:
               - Authorization
             allowCredentials: true
 
+  deleteCategory:
+    handler: handler.deleteCategory
+    events:
+      - http:
+          path: menu/category/{categoryId}
+          method: delete
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  deleteProduct:
+    handler: handler.deleteProduct
+    events:
+      - http:
+          path: menu/category/{categoryId}/product/{productId}
+          method: delete
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
 
 resources:
   Resources:
