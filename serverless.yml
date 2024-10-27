@@ -127,6 +127,31 @@ functions:
               - Authorization
             allowCredentials: true
 
+  createProduct:
+    handler: handler.createProduct
+    events:
+      - http:
+          path: menu/category/{categoryId}/product
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  getCategories:
+    handler: src/handlers.getCategories
+    events:
+      - http:
+          path: menu/categories
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
 
 resources:
   Resources:
