@@ -1,43 +1,38 @@
 const AWS = require('aws-sdk');
 
-// Configurar el endpoint de DynamoDB local
+// Configurar DynamoDB para que apunte al endpoint local
 const dynamoDb = new AWS.DynamoDB({
-    endpoint: 'http://localhost:8000', // Cambia el puerto si es necesario
-    region: 'us-east-1', // Cambia a la región que prefieras
+    endpoint: 'http://localhost:8000', // Cambia el endpoint si estás en otro entorno
+    region: 'us-east-1' // Cambia la región según corresponda
 });
 
+// Configuración de la tabla según el serverless.yml
 const params = {
-    TableName: 'MenuQrUsersTable',
+    TableName: 'MenuQrUsersTable', // Nombre de la tabla
     AttributeDefinitions: [
-        {
-            AttributeName: 'PK',
-            AttributeType: 'S',
-        },
-        {
-            AttributeName: 'SK',
-            AttributeType: 'S',
-        },
+        { AttributeName: 'PK', AttributeType: 'S' },
+        { AttributeName: 'SK', AttributeType: 'S' },
+        { AttributeName: 'categoryId', AttributeType: 'S' }
     ],
     KeySchema: [
-        {
-            AttributeName: 'PK',
-            KeyType: 'HASH',
-        },
-        {
-            AttributeName: 'SK',
-            KeyType: 'RANGE',
-        },
+        { AttributeName: 'PK', KeyType: 'HASH' },
+        { AttributeName: 'SK', KeyType: 'RANGE' }
     ],
     BillingMode: 'PAY_PER_REQUEST',
+    GlobalSecondaryIndexes: [
+        {
+            IndexName: 'categoryId-index',
+            KeySchema: [{ AttributeName: 'categoryId', KeyType: 'HASH' }],
+            Projection: { ProjectionType: 'ALL' }
+        }
+    ]
 };
 
-const createTable = async () => {
-    try {
-        const data = await dynamoDb.createTable(params).promise();
-        console.log('Table created successfully:', data);
-    } catch (error) {
-        console.error('Error creating table:', error);
+// Crear la tabla en DynamoDB
+dynamoDb.createTable(params, (err, data) => {
+    if (err) {
+        console.error('Error al crear la tabla:', err);
+    } else {
+        console.log('Tabla creada con éxito:', data);
     }
-};
-
-createTable();
+});

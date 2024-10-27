@@ -140,19 +140,6 @@ functions:
               - Authorization
             allowCredentials: true
 
-  getCategories:
-    handler: src/handlers.getCategories
-    events:
-      - http:
-          path: menu/categories
-          method: get
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
 resources:
   Resources:
     MenuQrUsersTable:
@@ -164,12 +151,21 @@ resources:
             AttributeType: S
           - AttributeName: SK
             AttributeType: S
+          - AttributeName: categoryId
+            AttributeType: S
         KeySchema:
           - AttributeName: PK
             KeyType: HASH
           - AttributeName: SK
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: categoryId-index
+            KeySchema:
+              - AttributeName: categoryId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
 
     GatewayResponse:
       Type: AWS::ApiGateway::GatewayResponse

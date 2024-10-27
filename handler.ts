@@ -372,7 +372,7 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
             productName: product.productName,
             price: product.price,
             description: product.description,
-            productId: product.SK.split('#')[1], // Extraer el ID del producto
+            productId: product.SK.split('#')[1],
             createdAt: product.createdAt,
             categoryId: product.categoryId, // Incluir categoryId
         }));
@@ -409,6 +409,103 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
         };
     }
 };
+
+// Función para eliminar una categoría y sus productos asociados
+// Función para eliminar categoría y productos asociados
+export const deleteCategory: APIGatewayProxyHandler = async (event) => {
+    const { categoryId } = event.pathParameters || {};
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const token = authHeader.split(' ')[1];
+    let userId;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as DefaultJwtPayload;
+        userId = decoded.userId;
+    } catch (error) {
+        return {
+            statusCode: 403,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    if (!categoryId) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Category ID is required' }),
+        };
+    }
+
+    // Consulta para obtener productos asociados utilizando el índice
+    const productQueryParams = {
+        TableName: USERS_TABLE,
+        IndexName: 'categoryId-index',
+        KeyConditionExpression: 'categoryId = :categoryIdVal',
+        ExpressionAttributeValues: {
+            ':categoryIdVal': `CATEGORY#${categoryId}`,
+        },
+    };
+
+    try {
+        // Obtener productos asociados
+        const productsResult = await dynamoDb.query(productQueryParams).promise();
+        const products = productsResult.Items || [];
+
+        // Batch delete para eliminar productos asociados
+        if (products.length > 0) {
+            const deleteRequests = products.map((product) => ({
+                DeleteRequest: {
+                    Key: {
+                        PK: product.PK,
+                        SK: product.SK,
+                    },
+                },
+            }));
+
+            const batchDeleteParams = {
+                RequestItems: {
+                    [USERS_TABLE]: deleteRequests,
+                },
+            };
+
+            await dynamoDb.batchWrite(batchDeleteParams).promise();
+            console.log('Productos eliminados:', deleteRequests);
+        }
+
+        // Eliminar la categoría
+        const deleteCategoryParams = {
+            TableName: USERS_TABLE,
+            Key: {
+                PK: `USER#${userId}`,
+                SK: `CATEGORY#${categoryId}`,
+            },
+        };
+
+        await dynamoDb.delete(deleteCategoryParams).promise();
+        console.log('Categoría eliminada con éxito:', categoryId);
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'Category and associated products deleted successfully' }),
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error deleting category and products:', errorMessage);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Error deleting category and products', error: errorMessage }),
+        };
+    }
+};
+
+
 
 
 // Eliminar producto
