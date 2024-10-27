@@ -3,24 +3,30 @@ service: menu-qr-backend
 provider:
   name: aws
   runtime: nodejs18.x
-  region: ${opt:region, self:custom.defaultRegion}
+  region: us-east-1
+  timeout: 15
+  stage: ${opt:stage, 'dev'}
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    USERS_TABLE: MenuQrUsersTable-${opt:stage, 'dev'}
 
   iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-        - dynamodb:Scan
-        - dynamodb:Query
-      Resource:
-        - arn:aws:dynamodb:${self:provider.region}:*:table/MenuQrUsersTable
-    - Effect: Allow
-      Action:
-        - execute-api:Invoke
-      Resource:
-        - "arn:aws:execute-api:${self:provider.region}:*:*"
+  - Effect: "Allow"
+    Action:
+      - "dynamodb:PutItem"
+      - "dynamodb:GetItem"
+      - "dynamodb:UpdateItem"
+      - "dynamodb:DeleteItem"
+      - "dynamodb:Scan"
+      - "dynamodb:Query"
+    Resource:
+      - "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}"
+
+  - Effect: "Allow"
+    Action:
+      - "execute-api:Invoke"
+    Resource:
+      - "arn:aws:execute-api:${self:provider.region}:${aws:accountId}:*/*"
 
 functions:
   signup:
@@ -121,7 +127,7 @@ functions:
           path: menu/category/{categoryId}/product/{productId}
           method: delete
           cors:
-            origin: '*'
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
             headers:
               - Content-Type
               - Authorization
@@ -134,7 +140,7 @@ functions:
           path: menu/category/{categoryId}/product
           method: post
           cors:
-            origin: '*'
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
             headers:
               - Content-Type
               - Authorization
@@ -145,7 +151,7 @@ resources:
     MenuQrUsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: MenuQrUsersTable
+        TableName: MenuQrUsersTable-${opt:stage, 'dev'}
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -181,17 +187,17 @@ resources:
 
 plugins:
   - serverless-offline
-  - serverless-dynamodb-local
 
 custom:
   defaultRegion: us-east-1
 
-  dynamodb:
-    stages:
-      - dev
-    start:
-      port: 8000
-      inMemory: true
-      migrate: true
-      seed: true
-      noStart: true  # No intentará iniciar DynamoDB si ya está corriendo en Docker
+package:
+  individually: true
+  excludeDevDependencies: true
+  exclude:
+    - .git/**
+    - .vscode/**
+    - tests/**
+    - docs/**
+    - "*.md" 
+    - node_modules/aws-sdk/**

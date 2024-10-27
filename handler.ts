@@ -4,13 +4,18 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload as DefaultJwtPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
+// Detecta si está en producción (AWS Lambda) o en local (desarrollo)
+const isProduction = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-const dynamoDb = new AWS.DynamoDB.DocumentClient({
-    endpoint: 'http://localhost:8000', // Agregar esta línea para conectar a DynamoDB local
-});
+const dynamoDb = new AWS.DynamoDB.DocumentClient(
+    !isProduction
+        ? { endpoint: 'http://localhost:8000' } // Usar DynamoDB local solo en entornos de desarrollo
+        : {} // Configuración predeterminada para producción en AWS
+);
 
-const USERS_TABLE = process.env.VITE_USERS_TABLE || 'MenuQrUsersTable';
-const JWT_SECRET = process.env.VITE_JWT_SECRET || 'd84e25a4-f70b-42b8-a4e9-9c6a8e16a7c5'; // Debería estar en variables de entorno
+const USERS_TABLE = `MenuQrUsersTable-${process.env.NODE_ENV || 'dev'}`;
+const JWT_SECRET = 'd84e25a4-f70b-42b8-a4e9-9c6a8e16a7c5'; // Ahora fijo
+
 
 interface CustomJwtPayload extends DefaultJwtPayload {
     userId: string;
@@ -108,6 +113,7 @@ export const menu: APIGatewayProxyHandler = async (event) => {
 // Función para registrar un nuevo usuario (signup)
 export const signup: APIGatewayProxyHandler = async (event) => {
     const { username, password } = JSON.parse(event.body || '{}');
+    console.log(process.env.USERS_TABLE)
 
     if (!username || !password) {
         return {
@@ -506,63 +512,39 @@ export const deleteCategory: APIGatewayProxyHandler = async (event) => {
 };
 
 
-
-
 // Eliminar producto
 export const deleteProduct: APIGatewayProxyHandler = async (event) => {
-    const { categoryId, productId } = event.pathParameters || {};
-    const authHeader = event.headers.Authorization || event.headers.authorization;
-
-    if (!authHeader) {
-        return {
-            statusCode: 401,
-            body: JSON.stringify({ message: 'Authorization header missing' }),
-        };
-    }
-
-    const token = authHeader.split(' ')[1];
-    let userId;
-
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as DefaultJwtPayload;
-        userId = decoded.userId; // Obtener el userId del token
-    } catch (error) {
-        return {
-            statusCode: 403,
-            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        // Obtén parámetros y valida token
+        const { categoryId, productId } = event.pathParameters || {};
+        const token = event.headers.Authorization?.split(' ')[1];
+        if (!token || !categoryId || !productId) throw new Error('Missing parameters or token');
+
+        const { userId } = jwt.verify(token, JWT_SECRET) as { userId: string };
+        if (!userId) throw new Error('Invalid token');
+
+        // Configuración de eliminación
+        const deleteParams = {
+            TableName: USERS_TABLE,
+            Key: {
+                PK: `USER#${userId}`,
+                SK: `CATEGORY#${categoryId}#PRODUCT#${productId}`
+            }
         };
-    }
 
-    if (!categoryId || !productId) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ message: 'Category ID and Product ID are required' }),
-        };
-    }
-
-    const params = {
-        TableName: USERS_TABLE,
-        Key: {
-            PK: `USER#${userId}`,
-            SK: `CATEGORY#${categoryId}#PRODUCT#${productId}`,
-        },
-    };
-
-    try {
-        await dynamoDb.delete(params).promise();
+        // Elimina producto de DynamoDB
+        await dynamoDb.delete(deleteParams).promise();
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: 'Product deleted successfully' }),
+            body: JSON.stringify({ message: 'Product deleted successfully' })
         };
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        console.error('Error deleting product:', errorMessage);
+        // Manejo del tipo de error
+        const errorMessage = (error as Error).message || 'Unknown error';
+        console.error('Error in deleteProduct:', errorMessage);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: 'Error deleting product', error: errorMessage }),
+            body: JSON.stringify({ message: 'Error deleting product', error: errorMessage })
         };
     }
 };
-
-
-

@@ -8,6 +8,12 @@
       "name": "aws",
       "runtime": "nodejs18.x",
       "region": "us-east-1",
+      "timeout": 15,
+      "stage": "production",
+      "environment": {
+        "NODE_ENV": "production",
+        "USERS_TABLE": "MenuQrUsersTable-production"
+      },
       "iamRoleStatements": [
         {
           "Effect": "Allow",
@@ -19,17 +25,16 @@
             "dynamodb:Scan",
             "dynamodb:Query"
           ],
-          "Resource": "arn:aws:dynamodb:us-east-1:*:table/MenuQrUsersTable"
+          "Resource": "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable-production"
         },
         {
           "Effect": "Allow",
           "Action": [
             "execute-api:Invoke"
           ],
-          "Resource": "arn:aws:execute-api:us-east-1:*:*"
+          "Resource": "arn:aws:execute-api:us-east-1:207567761860:*/*"
         }
       ],
-      "stage": "dev",
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
         "AWSTemplateFormatVersion": "2010-09-09",
@@ -38,55 +43,55 @@
           "SignupLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-signup"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-signup"
             }
           },
           "LoginLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-login"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-login"
             }
           },
           "HomeLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-home"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-home"
             }
           },
           "MenuLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-menu"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-menu"
             }
           },
           "CreateCategoryLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-createCategory"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-createCategory"
             }
           },
           "GetCategoriesLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-getCategories"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-getCategories"
             }
           },
           "DeleteCategoryLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-deleteCategory"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-deleteCategory"
             }
           },
           "DeleteProductLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-deleteProduct"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-deleteProduct"
             }
           },
           "CreateProductLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/menu-qr-backend-dev-createProduct"
+              "LogGroupName": "/aws/lambda/menu-qr-backend-production-createProduct"
             }
           },
           "IamRoleLambdaExecution": {
@@ -115,7 +120,7 @@
                       "-",
                       [
                         "menu-qr-backend",
-                        "dev",
+                        "production",
                         "lambda"
                       ]
                     ]
@@ -132,7 +137,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/menu-qr-backend-dev*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/menu-qr-backend-production*:*"
                           }
                         ]
                       },
@@ -143,7 +148,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/menu-qr-backend-dev*:*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/menu-qr-backend-production*:*:*"
                           }
                         ]
                       },
@@ -163,7 +168,7 @@
                   "-",
                   [
                     "menu-qr-backend",
-                    "dev",
+                    "production",
                     {
                       "Ref": "AWS::Region"
                     },
@@ -178,15 +183,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-signup.zip"
               },
               "Handler": "handler.signup",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-signup",
+              "FunctionName": "menu-qr-backend-production-signup",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -206,15 +213,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-login.zip"
               },
               "Handler": "handler.login",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-login",
+              "FunctionName": "menu-qr-backend-production-login",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -234,15 +243,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-home.zip"
               },
               "Handler": "handler.home",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-home",
+              "FunctionName": "menu-qr-backend-production-home",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -262,15 +273,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-menu.zip"
               },
               "Handler": "handler.menu",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-menu",
+              "FunctionName": "menu-qr-backend-production-menu",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -290,15 +303,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-createCategory.zip"
               },
               "Handler": "handler.createCategory",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-createCategory",
+              "FunctionName": "menu-qr-backend-production-createCategory",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -318,15 +333,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-getCategories.zip"
               },
               "Handler": "handler.getCategories",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-getCategories",
+              "FunctionName": "menu-qr-backend-production-getCategories",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -346,15 +363,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-deleteCategory.zip"
               },
               "Handler": "handler.deleteCategory",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-deleteCategory",
+              "FunctionName": "menu-qr-backend-production-deleteCategory",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -374,15 +393,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-deleteProduct.zip"
               },
               "Handler": "handler.deleteProduct",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-deleteProduct",
+              "FunctionName": "menu-qr-backend-production-deleteProduct",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -402,15 +423,17 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-                "S3Key": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z/menu-qr-backend.zip"
+                "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-createProduct.zip"
               },
               "Handler": "handler.createProduct",
               "Runtime": "nodejs18.x",
-              "FunctionName": "menu-qr-backend-dev-createProduct",
+              "FunctionName": "menu-qr-backend-production-createProduct",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 15,
               "Environment": {
                 "Variables": {
+                  "NODE_ENV": "production",
+                  "USERS_TABLE": "MenuQrUsersTable-production",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
@@ -425,100 +448,100 @@
               "CreateProductLogGroup"
             ]
           },
-          "SignupLambdaVersionwHkMcHtUo9gPNNE2C8eZkKpPc7VCz4yq2LjeBhnM": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "SignupLambdaFunction"
-              },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
-            }
-          },
-          "LoginLambdaVersion23rcGH7mWbYFKqoYlmOZerqE7CTl2gdHYgVQQ2laOU": {
+          "LoginLambdaVersionTCCDYgGvCpfHQlXX0oQktpCuTBm4N9Smhn43T6LE3a0": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "LoginLambdaFunction"
               },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
             }
           },
-          "HomeLambdaVersionlSlnkOfnfuSMYYiQXPr0a2AqRUTslpFeVGY2s494G8": {
+          "SignupLambdaVersion50Jv6pAWom7AUkNHO16n77vFGqABaoU9NRkqlKL93Q": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "SignupLambdaFunction"
+              },
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+            }
+          },
+          "HomeLambdaVersionxWEAw41ilTerfUbFmMjJQw6AZgQMtkbdOliGLq6M5y4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HomeLambdaFunction"
               },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
             }
           },
-          "MenuLambdaVersionVg64T07Er4oYRktlOGNUqSuflPSdroEh98aoQZmU": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "MenuLambdaFunction"
-              },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
-            }
-          },
-          "CreateCategoryLambdaVersionJtYjWaiBr3FV8EulmlnNQ8qWagcxABu8TR4nmlec1A": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "CreateCategoryLambdaFunction"
-              },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
-            }
-          },
-          "GetCategoriesLambdaVersion5Lb7Ugpx9EVaK2VcvJPAOQvvmyGZCkupOh1tI4MEnA": {
+          "GetCategoriesLambdaVersionsA7bzXrXGGQnGCj9exVE1Yql3XccGTXF00r1c35lc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GetCategoriesLambdaFunction"
               },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
             }
           },
-          "DeleteCategoryLambdaVersionjNMETk509KVEqlFUt3sIENVDbRpgLdJpzXdIeG7ijCw": {
+          "DeleteCategoryLambdaVersion5deNGOPUrX4nBsoS6O3UpvNGSbTbueinZvtKRK3np8Q": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DeleteCategoryLambdaFunction"
               },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
             }
           },
-          "DeleteProductLambdaVersiony5J3YRMIta5CyS8A0yQsWspjhCevTvIJJ0jpFaEVvU": {
+          "MenuLambdaVersionbI98i8Kt0vBePylQfxGIn8NV5OmvK38CSiKUgUtkA": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
-                "Ref": "DeleteProductLambdaFunction"
+                "Ref": "MenuLambdaFunction"
               },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
             }
           },
-          "CreateProductLambdaVersionCDlruh38x776CLXGxRaU1pGfaMmsUhVGbkNpML8s": {
+          "CreateCategoryLambdaVersionQg6pLpoBtF2fRXe3s7JCRfQDii78bnDJowA5oJeHDO8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CreateCategoryLambdaFunction"
+              },
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+            }
+          },
+          "CreateProductLambdaVersionm0dVwnlFwUYnDo0eUAT6aZ5LQLwlA5o3p2c8yFqpWB0": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "CreateProductLambdaFunction"
               },
-              "CodeSha256": "1LYWP9FsKWYx34n0/1OM11RJ8w47ePqc1yiJ9gaFwc0="
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+            }
+          },
+          "DeleteProductLambdaVersion5OYQ2d9d7Vzb5puWBRNgxaYHvFnX1mpkoDyaoEyrZa8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "DeleteProductLambdaFunction"
+              },
+              "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
             }
           },
           "ApiGatewayRestApi": {
             "Type": "AWS::ApiGateway::RestApi",
             "Properties": {
-              "Name": "dev-menu-qr-backend",
+              "Name": "production-menu-qr-backend",
               "EndpointConfiguration": {
                 "Types": [
                   "EDGE"
@@ -1019,7 +1042,7 @@
                   {
                     "StatusCode": "200",
                     "ResponseParameters": {
-                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
                       "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization'",
                       "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE'",
                       "method.response.header.Access-Control-Allow-Credentials": "'true'"
@@ -1066,7 +1089,7 @@
                   {
                     "StatusCode": "200",
                     "ResponseParameters": {
-                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
                       "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization'",
                       "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'",
                       "method.response.header.Access-Control-Allow-Credentials": "'true'"
@@ -1499,13 +1522,13 @@
               "CreateProductLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1730018106502": {
+          "ApiGatewayDeployment1730070151505": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               },
-              "StageName": "dev"
+              "StageName": "production"
             },
             "DependsOn": [
               "ApiGatewayMethodSignupOptions",
@@ -1864,7 +1887,7 @@
           "MenuQrUsersTable": {
             "Type": "AWS::DynamoDB::Table",
             "Properties": {
-              "TableName": "MenuQrUsersTable",
+              "TableName": "MenuQrUsersTable-production",
               "AttributeDefinitions": [
                 {
                   "AttributeName": "PK",
@@ -1897,10 +1920,6 @@
                     {
                       "AttributeName": "categoryId",
                       "KeyType": "HASH"
-                    },
-                    {
-                      "AttributeName": "SK",
-                      "KeyType": "RANGE"
                     }
                   ],
                   "Projection": {
@@ -1930,88 +1949,88 @@
           "ServerlessDeploymentBucketName": {
             "Value": "serverless-framework-deployments-us-east-1-e469ae14-d620",
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-ServerlessDeploymentBucketName"
-            }
-          },
-          "SignupLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "SignupLambdaVersionwHkMcHtUo9gPNNE2C8eZkKpPc7VCz4yq2LjeBhnM"
-            },
-            "Export": {
-              "Name": "sls-menu-qr-backend-dev-SignupLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-ServerlessDeploymentBucketName"
             }
           },
           "LoginLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "LoginLambdaVersion23rcGH7mWbYFKqoYlmOZerqE7CTl2gdHYgVQQ2laOU"
+              "Ref": "LoginLambdaVersionTCCDYgGvCpfHQlXX0oQktpCuTBm4N9Smhn43T6LE3a0"
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-LoginLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-LoginLambdaFunctionQualifiedArn"
+            }
+          },
+          "SignupLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "SignupLambdaVersion50Jv6pAWom7AUkNHO16n77vFGqABaoU9NRkqlKL93Q"
+            },
+            "Export": {
+              "Name": "sls-menu-qr-backend-production-SignupLambdaFunctionQualifiedArn"
             }
           },
           "HomeLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HomeLambdaVersionlSlnkOfnfuSMYYiQXPr0a2AqRUTslpFeVGY2s494G8"
+              "Ref": "HomeLambdaVersionxWEAw41ilTerfUbFmMjJQw6AZgQMtkbdOliGLq6M5y4"
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-HomeLambdaFunctionQualifiedArn"
-            }
-          },
-          "MenuLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "MenuLambdaVersionVg64T07Er4oYRktlOGNUqSuflPSdroEh98aoQZmU"
-            },
-            "Export": {
-              "Name": "sls-menu-qr-backend-dev-MenuLambdaFunctionQualifiedArn"
-            }
-          },
-          "CreateCategoryLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "CreateCategoryLambdaVersionJtYjWaiBr3FV8EulmlnNQ8qWagcxABu8TR4nmlec1A"
-            },
-            "Export": {
-              "Name": "sls-menu-qr-backend-dev-CreateCategoryLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-HomeLambdaFunctionQualifiedArn"
             }
           },
           "GetCategoriesLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GetCategoriesLambdaVersion5Lb7Ugpx9EVaK2VcvJPAOQvvmyGZCkupOh1tI4MEnA"
+              "Ref": "GetCategoriesLambdaVersionsA7bzXrXGGQnGCj9exVE1Yql3XccGTXF00r1c35lc"
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-GetCategoriesLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-GetCategoriesLambdaFunctionQualifiedArn"
             }
           },
           "DeleteCategoryLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DeleteCategoryLambdaVersionjNMETk509KVEqlFUt3sIENVDbRpgLdJpzXdIeG7ijCw"
+              "Ref": "DeleteCategoryLambdaVersion5deNGOPUrX4nBsoS6O3UpvNGSbTbueinZvtKRK3np8Q"
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-DeleteCategoryLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-DeleteCategoryLambdaFunctionQualifiedArn"
             }
           },
-          "DeleteProductLambdaFunctionQualifiedArn": {
+          "MenuLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DeleteProductLambdaVersiony5J3YRMIta5CyS8A0yQsWspjhCevTvIJJ0jpFaEVvU"
+              "Ref": "MenuLambdaVersionbI98i8Kt0vBePylQfxGIn8NV5OmvK38CSiKUgUtkA"
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-DeleteProductLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-MenuLambdaFunctionQualifiedArn"
+            }
+          },
+          "CreateCategoryLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CreateCategoryLambdaVersionQg6pLpoBtF2fRXe3s7JCRfQDii78bnDJowA5oJeHDO8"
+            },
+            "Export": {
+              "Name": "sls-menu-qr-backend-production-CreateCategoryLambdaFunctionQualifiedArn"
             }
           },
           "CreateProductLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CreateProductLambdaVersionCDlruh38x776CLXGxRaU1pGfaMmsUhVGbkNpML8s"
+              "Ref": "CreateProductLambdaVersionm0dVwnlFwUYnDo0eUAT6aZ5LQLwlA5o3p2c8yFqpWB0"
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-CreateProductLambdaFunctionQualifiedArn"
+              "Name": "sls-menu-qr-backend-production-CreateProductLambdaFunctionQualifiedArn"
+            }
+          },
+          "DeleteProductLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "DeleteProductLambdaVersion5OYQ2d9d7Vzb5puWBRNgxaYHvFnX1mpkoDyaoEyrZa8"
+            },
+            "Export": {
+              "Name": "sls-menu-qr-backend-production-DeleteProductLambdaFunctionQualifiedArn"
             }
           },
           "ServiceEndpoint": {
@@ -2032,12 +2051,12 @@
                   {
                     "Ref": "AWS::URLSuffix"
                   },
-                  "/dev"
+                  "/production"
                 ]
               ]
             },
             "Export": {
-              "Name": "sls-menu-qr-backend-dev-ServiceEndpoint"
+              "Name": "sls-menu-qr-backend-production-ServiceEndpoint"
             }
           }
         }
@@ -2045,23 +2064,10 @@
       "vpc": {}
     },
     "custom": {
-      "defaultRegion": "us-east-1",
-      "dynamodb": {
-        "stages": [
-          "dev"
-        ],
-        "start": {
-          "port": 8000,
-          "inMemory": true,
-          "migrate": true,
-          "seed": true,
-          "noStart": true
-        }
-      }
+      "defaultRegion": "us-east-1"
     },
     "plugins": [
-      "serverless-offline",
-      "serverless-dynamodb-local"
+      "serverless-offline"
     ],
     "pluginsData": {},
     "functions": {
@@ -2088,16 +2094,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-signup",
+        "name": "menu-qr-backend-production-signup",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-signup.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "SignupLambdaVersionwHkMcHtUo9gPNNE2C8eZkKpPc7VCz4yq2LjeBhnM"
+        "versionLogicalId": "SignupLambdaVersion50Jv6pAWom7AUkNHO16n77vFGqABaoU9NRkqlKL93Q"
       },
       "login": {
         "handler": "handler.login",
@@ -2122,16 +2130,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-login",
+        "name": "menu-qr-backend-production-login",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-login.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "LoginLambdaVersion23rcGH7mWbYFKqoYlmOZerqE7CTl2gdHYgVQQ2laOU"
+        "versionLogicalId": "LoginLambdaVersionTCCDYgGvCpfHQlXX0oQktpCuTBm4N9Smhn43T6LE3a0"
       },
       "home": {
         "handler": "handler.home",
@@ -2156,16 +2166,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-home",
+        "name": "menu-qr-backend-production-home",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-home.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "HomeLambdaVersionlSlnkOfnfuSMYYiQXPr0a2AqRUTslpFeVGY2s494G8"
+        "versionLogicalId": "HomeLambdaVersionxWEAw41ilTerfUbFmMjJQw6AZgQMtkbdOliGLq6M5y4"
       },
       "menu": {
         "handler": "handler.menu",
@@ -2190,16 +2202,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-menu",
+        "name": "menu-qr-backend-production-menu",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-menu.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "MenuLambdaVersionVg64T07Er4oYRktlOGNUqSuflPSdroEh98aoQZmU"
+        "versionLogicalId": "MenuLambdaVersionbI98i8Kt0vBePylQfxGIn8NV5OmvK38CSiKUgUtkA"
       },
       "createCategory": {
         "handler": "handler.createCategory",
@@ -2224,16 +2238,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-createCategory",
+        "name": "menu-qr-backend-production-createCategory",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-createCategory.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "CreateCategoryLambdaVersionJtYjWaiBr3FV8EulmlnNQ8qWagcxABu8TR4nmlec1A"
+        "versionLogicalId": "CreateCategoryLambdaVersionQg6pLpoBtF2fRXe3s7JCRfQDii78bnDJowA5oJeHDO8"
       },
       "getCategories": {
         "handler": "handler.getCategories",
@@ -2258,16 +2274,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-getCategories",
+        "name": "menu-qr-backend-production-getCategories",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-getCategories.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "GetCategoriesLambdaVersion5Lb7Ugpx9EVaK2VcvJPAOQvvmyGZCkupOh1tI4MEnA"
+        "versionLogicalId": "GetCategoriesLambdaVersionsA7bzXrXGGQnGCj9exVE1Yql3XccGTXF00r1c35lc"
       },
       "deleteCategory": {
         "handler": "handler.deleteCategory",
@@ -2292,16 +2310,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-deleteCategory",
+        "name": "menu-qr-backend-production-deleteCategory",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-deleteCategory.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "DeleteCategoryLambdaVersionjNMETk509KVEqlFUt3sIENVDbRpgLdJpzXdIeG7ijCw"
+        "versionLogicalId": "DeleteCategoryLambdaVersion5deNGOPUrX4nBsoS6O3UpvNGSbTbueinZvtKRK3np8Q"
       },
       "deleteProduct": {
         "handler": "handler.deleteProduct",
@@ -2311,7 +2331,7 @@
               "path": "menu/category/{categoryId}/product/{productId}",
               "method": "delete",
               "cors": {
-                "origin": "*",
+                "origin": "https://dljrvybt2jogj.cloudfront.net",
                 "methods": [
                   "OPTIONS",
                   "DELETE"
@@ -2326,16 +2346,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-deleteProduct",
+        "name": "menu-qr-backend-production-deleteProduct",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-deleteProduct.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "DeleteProductLambdaVersiony5J3YRMIta5CyS8A0yQsWspjhCevTvIJJ0jpFaEVvU"
+        "versionLogicalId": "DeleteProductLambdaVersion5OYQ2d9d7Vzb5puWBRNgxaYHvFnX1mpkoDyaoEyrZa8"
       },
       "createProduct": {
         "handler": "handler.createProduct",
@@ -2345,7 +2367,7 @@
               "path": "menu/category/{categoryId}/product",
               "method": "post",
               "cors": {
-                "origin": "*",
+                "origin": "https://dljrvybt2jogj.cloudfront.net",
                 "methods": [
                   "OPTIONS",
                   "POST"
@@ -2360,16 +2382,18 @@
             }
           }
         ],
-        "name": "menu-qr-backend-dev-createProduct",
+        "name": "menu-qr-backend-production-createProduct",
         "environment": {
           "NODE_OPTIONS": "--enable-source-maps"
         },
-        "package": {},
+        "package": {
+          "artifact": "/home/dannysilver/menu-qr/backend/.serverless/build/menu-qr-backend-createProduct.zip"
+        },
         "memory": 1024,
-        "timeout": 6,
+        "timeout": 15,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "CreateProductLambdaVersionCDlruh38x776CLXGxRaU1pGfaMmsUhVGbkNpML8s"
+        "versionLogicalId": "CreateProductLambdaVersionm0dVwnlFwUYnDo0eUAT6aZ5LQLwlA5o3p2c8yFqpWB0"
       }
     },
     "resources": {
@@ -2377,7 +2401,7 @@
         "MenuQrUsersTable": {
           "Type": "AWS::DynamoDB::Table",
           "Properties": {
-            "TableName": "MenuQrUsersTable",
+            "TableName": "MenuQrUsersTable-production",
             "AttributeDefinitions": [
               {
                 "AttributeName": "PK",
@@ -2410,10 +2434,6 @@
                   {
                     "AttributeName": "categoryId",
                     "KeyType": "HASH"
-                  },
-                  {
-                    "AttributeName": "SK",
-                    "KeyType": "RANGE"
                   }
                 ],
                 "Projection": {
@@ -2459,6 +2479,21 @@
       },
       "custom": {
         "$ref": "$[\"service\"][\"custom\"]"
+      },
+      "package": {
+        "individually": true,
+        "excludeDevDependencies": true,
+        "exclude": [
+          ".git/**",
+          ".vscode/**",
+          "tests/**",
+          "docs/**",
+          "*.md",
+          "node_modules/aws-sdk/**"
+        ],
+        "artifactsS3KeyDirname": "serverless/menu-qr-backend/production/code-artifacts",
+        "deploymentBucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
+        "artifactDirectoryName": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z"
       }
     },
     "appId": null,
@@ -2466,7 +2501,8 @@
     "layers": {}
   },
   "package": {
-    "artifactDirectoryName": "serverless/menu-qr-backend/dev/1730018141636-2024-10-27T08:35:41.636Z",
-    "artifact": "menu-qr-backend.zip"
+    "individually": true,
+    "artifactDirectoryName": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z",
+    "artifact": ""
   }
 }

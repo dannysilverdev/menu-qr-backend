@@ -3,11 +3,9 @@
   "version": "1.0.0",
   "main": "handler.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:prod": "serverless deploy --stage production",
+    "deploy:dev": "serverless deploy --stage dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {}
 }
