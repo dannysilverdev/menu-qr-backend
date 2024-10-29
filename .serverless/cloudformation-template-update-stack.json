@@ -14,6 +14,12 @@
         "LogGroupName": "/aws/lambda/menu-qr-backend-production-login"
       }
     },
+    "DeleteUserLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/menu-qr-backend-production-deleteUser"
+      }
+    },
     "HomeLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
@@ -24,6 +30,12 @@
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
         "LogGroupName": "/aws/lambda/menu-qr-backend-production-menu"
+      }
+    },
+    "PublicRouteLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/menu-qr-backend-production-publicRoute"
       }
     },
     "CreateCategoryLogGroup": {
@@ -124,7 +136,10 @@
                     "dynamodb:Scan",
                     "dynamodb:Query"
                   ],
-                  "Resource": "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable-production"
+                  "Resource": [
+                    "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable-production",
+                    "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable-production/index/categoryId-index"
+                  ]
                 },
                 {
                   "Effect": "Allow",
@@ -158,17 +173,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-signup.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-signup.zip"
         },
-        "Handler": "handler.signup",
+        "Handler": "handlers/authHandler.signup",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-signup",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -188,17 +204,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-login.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-login.zip"
         },
-        "Handler": "handler.login",
+        "Handler": "handlers/authHandler.login",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-login",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -213,22 +230,54 @@
         "LoginLogGroup"
       ]
     },
+    "DeleteUserLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-deleteUser.zip"
+        },
+        "Handler": "handlers/authHandler.deleteUser",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "menu-qr-backend-production-deleteUser",
+        "MemorySize": 1024,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
+            "NODE_OPTIONS": "--enable-source-maps"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "DeleteUserLogGroup"
+      ]
+    },
     "HomeLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-home.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-home.zip"
         },
-        "Handler": "handler.home",
+        "Handler": "handlers/handler.home",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-home",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -248,17 +297,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-menu.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-menu.zip"
         },
-        "Handler": "handler.menu",
+        "Handler": "handlers/handler.menu",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-menu",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -273,22 +323,54 @@
         "MenuLogGroup"
       ]
     },
+    "PublicRouteLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-publicRoute.zip"
+        },
+        "Handler": "handlers/handler.viewMenu",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "menu-qr-backend-production-publicRoute",
+        "MemorySize": 1024,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
+            "NODE_OPTIONS": "--enable-source-maps"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "PublicRouteLogGroup"
+      ]
+    },
     "CreateCategoryLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-createCategory.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-createCategory.zip"
         },
-        "Handler": "handler.createCategory",
+        "Handler": "handlers/categoryHandler.createCategory",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-createCategory",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -308,17 +390,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-getCategories.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-getCategories.zip"
         },
-        "Handler": "handler.getCategories",
+        "Handler": "handlers/categoryHandler.getCategories",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-getCategories",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -338,17 +421,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-deleteCategory.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-deleteCategory.zip"
         },
-        "Handler": "handler.deleteCategory",
+        "Handler": "handlers/categoryHandler.deleteCategory",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-deleteCategory",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -368,17 +452,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-deleteProduct.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-deleteProduct.zip"
         },
-        "Handler": "handler.deleteProduct",
+        "Handler": "handlers/productHandler.deleteProduct",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-deleteProduct",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -398,17 +483,18 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-1-e469ae14-d620",
-          "S3Key": "serverless/menu-qr-backend/production/1730070159671-2024-10-27T23:02:39.671Z/menu-qr-backend-createProduct.zip"
+          "S3Key": "serverless/menu-qr-backend/production/1730219964394-2024-10-29T16:39:24.394Z/menu-qr-backend-createProduct.zip"
         },
-        "Handler": "handler.createProduct",
+        "Handler": "handlers/productHandler.createProduct",
         "Runtime": "nodejs18.x",
         "FunctionName": "menu-qr-backend-production-createProduct",
         "MemorySize": 1024,
         "Timeout": 15,
         "Environment": {
           "Variables": {
-            "NODE_ENV": "production",
             "USERS_TABLE": "MenuQrUsersTable-production",
+            "NODE_ENV": "production",
+            "DYNAMODB_ENDPOINT": "http://localhost:8000",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -423,94 +509,114 @@
         "CreateProductLogGroup"
       ]
     },
-    "LoginLambdaVersionTCCDYgGvCpfHQlXX0oQktpCuTBm4N9Smhn43T6LE3a0": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "LoginLambdaFunction"
-        },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
-      }
-    },
-    "SignupLambdaVersion50Jv6pAWom7AUkNHO16n77vFGqABaoU9NRkqlKL93Q": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "SignupLambdaFunction"
-        },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
-      }
-    },
-    "HomeLambdaVersionxWEAw41ilTerfUbFmMjJQw6AZgQMtkbdOliGLq6M5y4": {
+    "HomeLambdaVersiondjiuLjdESWGMFJ0LSF1xd9NhVkqdwuYFlMKvuF6vIU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "HomeLambdaFunction"
         },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+        "CodeSha256": "UMMxAHZiAHMSy5340wuSKAceV9XEHHK5GekJbsM+vCA="
       }
     },
-    "GetCategoriesLambdaVersionsA7bzXrXGGQnGCj9exVE1Yql3XccGTXF00r1c35lc": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "GetCategoriesLambdaFunction"
-        },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
-      }
-    },
-    "DeleteCategoryLambdaVersion5deNGOPUrX4nBsoS6O3UpvNGSbTbueinZvtKRK3np8Q": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "DeleteCategoryLambdaFunction"
-        },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
-      }
-    },
-    "MenuLambdaVersionbI98i8Kt0vBePylQfxGIn8NV5OmvK38CSiKUgUtkA": {
+    "MenuLambdaVersion4xUev5v1040zBqzPDU30MiZTNEolRaRah5TCgx3ySO4": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MenuLambdaFunction"
         },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+        "CodeSha256": "UMMxAHZiAHMSy5340wuSKAceV9XEHHK5GekJbsM+vCA="
       }
     },
-    "CreateCategoryLambdaVersionQg6pLpoBtF2fRXe3s7JCRfQDii78bnDJowA5oJeHDO8": {
+    "PublicRouteLambdaVersiontruRFZ0SGdJstoE9sOSxTXioUkpS42wgY6sM1cI": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "PublicRouteLambdaFunction"
+        },
+        "CodeSha256": "UMMxAHZiAHMSy5340wuSKAceV9XEHHK5GekJbsM+vCA="
+      }
+    },
+    "CreateCategoryLambdaVersion0rlbH7EwrTuXgNCHMRyweNNVVnqTenXyQClixYREOJ0": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateCategoryLambdaFunction"
         },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+        "CodeSha256": "DjEY/IRbjmjJzRFlXSyficKS3evPkHQ4d4IINk9D6aw="
       }
     },
-    "CreateProductLambdaVersionm0dVwnlFwUYnDo0eUAT6aZ5LQLwlA5o3p2c8yFqpWB0": {
+    "GetCategoriesLambdaVersion8ZWudmICEOgNVHqmZYUn2j0uRcIpXlWQZXd73KYA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "CreateProductLambdaFunction"
+          "Ref": "GetCategoriesLambdaFunction"
         },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+        "CodeSha256": "DjEY/IRbjmjJzRFlXSyficKS3evPkHQ4d4IINk9D6aw="
       }
     },
-    "DeleteProductLambdaVersion5OYQ2d9d7Vzb5puWBRNgxaYHvFnX1mpkoDyaoEyrZa8": {
+    "DeleteCategoryLambdaVersionkbjX30pkGT6huCfrfrwZ8MhK0hYOaviJADxOyw4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DeleteCategoryLambdaFunction"
+        },
+        "CodeSha256": "DjEY/IRbjmjJzRFlXSyficKS3evPkHQ4d4IINk9D6aw="
+      }
+    },
+    "DeleteProductLambdaVersionvb7EVT3gtk0iXWv7gFZNyP91T9T1dHvaaan7oDBLnY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DeleteProductLambdaFunction"
         },
-        "CodeSha256": "bRAsgM1amOYHGDwmiN9P1G4W+iPfxrCM+RzKjdDiVyU="
+        "CodeSha256": "AtKTR/wKIsDkn1KSoLIXWP/bk2d0VEPk19+6gEvZGg4="
+      }
+    },
+    "CreateProductLambdaVersion4OIlcJYg6I9yok4vXJRgVXjAmPXLeqzHaTirM9VzQ": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "CreateProductLambdaFunction"
+        },
+        "CodeSha256": "AtKTR/wKIsDkn1KSoLIXWP/bk2d0VEPk19+6gEvZGg4="
+      }
+    },
+    "SignupLambdaVersiong1n8sH3TgPDpcIlFukrPiAxU9RI2cXfe0HsWxKFat4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "SignupLambdaFunction"
+        },
+        "CodeSha256": "XsaT9f/0i+HY6l7Zhc0m/SO4fUOsHN1z9mHLiykK5hk="
+      }
+    },
+    "LoginLambdaVersionUNngdDzVZhi5umhhyi3L74QE4CCKML1bXN1ZWh50": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "LoginLambdaFunction"
+        },
+        "CodeSha256": "XsaT9f/0i+HY6l7Zhc0m/SO4fUOsHN1z9mHLiykK5hk="
+      }
+    },
+    "DeleteUserLambdaVersionPtZ5QsGFMv9KR5DSRUz00Dppn5MarDzKLcjsWTPM": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DeleteUserLambdaFunction"
+        },
+        "CodeSha256": "XsaT9f/0i+HY6l7Zhc0m/SO4fUOsHN1z9mHLiykK5hk="
       }
     },
     "ApiGatewayRestApi": {
@@ -550,6 +656,33 @@
           ]
         },
         "PathPart": "login",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceUser": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "user",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceUserUseridVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceUser"
+        },
+        "PathPart": "{userId}",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -628,6 +761,33 @@
           "Ref": "ApiGatewayResourceMenuCategoryCategoryidVarProduct"
         },
         "PathPart": "{productId}",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceViewDashmenu": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "view-menu",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceViewDashmenuUseridVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceViewDashmenu"
+        },
+        "PathPart": "{userId}",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -736,7 +896,7 @@
               "StatusCode": "200",
               "ResponseParameters": {
                 "method.response.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'",
                 "method.response.header.Access-Control-Allow-Credentials": "'true'"
               },
@@ -748,6 +908,51 @@
         },
         "ResourceId": {
           "Ref": "ApiGatewayResourceLogin"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodUserUseridVarOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceUserUseridVar"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -842,6 +1047,51 @@
         },
         "ResourceId": {
           "Ref": "ApiGatewayResourceMenu"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodViewDashmenuUseridVarOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceViewDashmenuUseridVar"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -1175,6 +1425,52 @@
         "LoginLambdaPermissionApiGateway"
       ]
     },
+    "ApiGatewayMethodUserUseridVarDelete": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "DELETE",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceUserUseridVar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "DeleteUserLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "DeleteUserLambdaPermissionApiGateway"
+      ]
+    },
     "ApiGatewayMethodHomeGet": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
@@ -1265,6 +1561,52 @@
       },
       "DependsOn": [
         "MenuLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodViewDashmenuUseridVarGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceViewDashmenuUseridVar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "PublicRouteLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "PublicRouteLambdaPermissionApiGateway"
       ]
     },
     "ApiGatewayMethodMenuCategoryPost": {
@@ -1497,7 +1839,7 @@
         "CreateProductLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1730070151505": {
+    "ApiGatewayDeployment1730219953526": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -1508,8 +1850,10 @@
       "DependsOn": [
         "ApiGatewayMethodSignupOptions",
         "ApiGatewayMethodLoginOptions",
+        "ApiGatewayMethodUserUseridVarOptions",
         "ApiGatewayMethodHomeOptions",
         "ApiGatewayMethodMenuOptions",
+        "ApiGatewayMethodViewDashmenuUseridVarOptions",
         "ApiGatewayMethodMenuCategoryOptions",
         "ApiGatewayMethodCategoriesUseridVarOptions",
         "ApiGatewayMethodMenuCategoryCategoryidVarOptions",
@@ -1517,8 +1861,10 @@
         "ApiGatewayMethodMenuCategoryCategoryidVarProductOptions",
         "ApiGatewayMethodSignupPost",
         "ApiGatewayMethodLoginPost",
+        "ApiGatewayMethodUserUseridVarDelete",
         "ApiGatewayMethodHomeGet",
         "ApiGatewayMethodMenuGet",
+        "ApiGatewayMethodViewDashmenuUseridVarGet",
         "ApiGatewayMethodMenuCategoryPost",
         "ApiGatewayMethodCategoriesUseridVarGet",
         "ApiGatewayMethodMenuCategoryCategoryidVarDelete",
@@ -1600,6 +1946,43 @@
         }
       }
     },
+    "DeleteUserLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "DeleteUserLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
     "HomeLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
@@ -1643,6 +2026,43 @@
         "FunctionName": {
           "Fn::GetAtt": [
             "MenuLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "PublicRouteLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "PublicRouteLambdaFunction",
             "Arn"
           ]
         },
@@ -1859,7 +2279,7 @@
         }
       }
     },
-    "MenuQrUsersTable": {
+    "UsersTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
         "TableName": "MenuQrUsersTable-production",
@@ -1887,7 +2307,6 @@
             "KeyType": "RANGE"
           }
         ],
-        "BillingMode": "PAY_PER_REQUEST",
         "GlobalSecondaryIndexes": [
           {
             "IndexName": "categoryId-index",
@@ -1895,13 +2314,18 @@
               {
                 "AttributeName": "categoryId",
                 "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "SK",
+                "KeyType": "RANGE"
               }
             ],
             "Projection": {
               "ProjectionType": "ALL"
             }
           }
-        ]
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
       }
     },
     "GatewayResponse": {
@@ -1927,37 +2351,46 @@
         "Name": "sls-menu-qr-backend-production-ServerlessDeploymentBucketName"
       }
     },
-    "LoginLambdaFunctionQualifiedArn": {
-      "Description": "Current Lambda function version",
-      "Value": {
-        "Ref": "LoginLambdaVersionTCCDYgGvCpfHQlXX0oQktpCuTBm4N9Smhn43T6LE3a0"
-      },
-      "Export": {
-        "Name": "sls-menu-qr-backend-production-LoginLambdaFunctionQualifiedArn"
-      }
-    },
-    "SignupLambdaFunctionQualifiedArn": {
-      "Description": "Current Lambda function version",
-      "Value": {
-        "Ref": "SignupLambdaVersion50Jv6pAWom7AUkNHO16n77vFGqABaoU9NRkqlKL93Q"
-      },
-      "Export": {
-        "Name": "sls-menu-qr-backend-production-SignupLambdaFunctionQualifiedArn"
-      }
-    },
     "HomeLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "HomeLambdaVersionxWEAw41ilTerfUbFmMjJQw6AZgQMtkbdOliGLq6M5y4"
+        "Ref": "HomeLambdaVersiondjiuLjdESWGMFJ0LSF1xd9NhVkqdwuYFlMKvuF6vIU"
       },
       "Export": {
         "Name": "sls-menu-qr-backend-production-HomeLambdaFunctionQualifiedArn"
       }
     },
+    "MenuLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "MenuLambdaVersion4xUev5v1040zBqzPDU30MiZTNEolRaRah5TCgx3ySO4"
+      },
+      "Export": {
+        "Name": "sls-menu-qr-backend-production-MenuLambdaFunctionQualifiedArn"
+      }
+    },
+    "PublicRouteLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "PublicRouteLambdaVersiontruRFZ0SGdJstoE9sOSxTXioUkpS42wgY6sM1cI"
+      },
+      "Export": {
+        "Name": "sls-menu-qr-backend-production-PublicRouteLambdaFunctionQualifiedArn"
+      }
+    },
+    "CreateCategoryLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "CreateCategoryLambdaVersion0rlbH7EwrTuXgNCHMRyweNNVVnqTenXyQClixYREOJ0"
+      },
+      "Export": {
+        "Name": "sls-menu-qr-backend-production-CreateCategoryLambdaFunctionQualifiedArn"
+      }
+    },
     "GetCategoriesLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetCategoriesLambdaVersionsA7bzXrXGGQnGCj9exVE1Yql3XccGTXF00r1c35lc"
+        "Ref": "GetCategoriesLambdaVersion8ZWudmICEOgNVHqmZYUn2j0uRcIpXlWQZXd73KYA"
       },
       "Export": {
         "Name": "sls-menu-qr-backend-production-GetCategoriesLambdaFunctionQualifiedArn"
@@ -1966,46 +2399,55 @@
     "DeleteCategoryLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DeleteCategoryLambdaVersion5deNGOPUrX4nBsoS6O3UpvNGSbTbueinZvtKRK3np8Q"
+        "Ref": "DeleteCategoryLambdaVersionkbjX30pkGT6huCfrfrwZ8MhK0hYOaviJADxOyw4"
       },
       "Export": {
         "Name": "sls-menu-qr-backend-production-DeleteCategoryLambdaFunctionQualifiedArn"
       }
     },
-    "MenuLambdaFunctionQualifiedArn": {
+    "DeleteProductLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MenuLambdaVersionbI98i8Kt0vBePylQfxGIn8NV5OmvK38CSiKUgUtkA"
+        "Ref": "DeleteProductLambdaVersionvb7EVT3gtk0iXWv7gFZNyP91T9T1dHvaaan7oDBLnY"
       },
       "Export": {
-        "Name": "sls-menu-qr-backend-production-MenuLambdaFunctionQualifiedArn"
-      }
-    },
-    "CreateCategoryLambdaFunctionQualifiedArn": {
-      "Description": "Current Lambda function version",
-      "Value": {
-        "Ref": "CreateCategoryLambdaVersionQg6pLpoBtF2fRXe3s7JCRfQDii78bnDJowA5oJeHDO8"
-      },
-      "Export": {
-        "Name": "sls-menu-qr-backend-production-CreateCategoryLambdaFunctionQualifiedArn"
+        "Name": "sls-menu-qr-backend-production-DeleteProductLambdaFunctionQualifiedArn"
       }
     },
     "CreateProductLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateProductLambdaVersionm0dVwnlFwUYnDo0eUAT6aZ5LQLwlA5o3p2c8yFqpWB0"
+        "Ref": "CreateProductLambdaVersion4OIlcJYg6I9yok4vXJRgVXjAmPXLeqzHaTirM9VzQ"
       },
       "Export": {
         "Name": "sls-menu-qr-backend-production-CreateProductLambdaFunctionQualifiedArn"
       }
     },
-    "DeleteProductLambdaFunctionQualifiedArn": {
+    "SignupLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DeleteProductLambdaVersion5OYQ2d9d7Vzb5puWBRNgxaYHvFnX1mpkoDyaoEyrZa8"
+        "Ref": "SignupLambdaVersiong1n8sH3TgPDpcIlFukrPiAxU9RI2cXfe0HsWxKFat4"
       },
       "Export": {
-        "Name": "sls-menu-qr-backend-production-DeleteProductLambdaFunctionQualifiedArn"
+        "Name": "sls-menu-qr-backend-production-SignupLambdaFunctionQualifiedArn"
+      }
+    },
+    "LoginLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "LoginLambdaVersionUNngdDzVZhi5umhhyi3L74QE4CCKML1bXN1ZWh50"
+      },
+      "Export": {
+        "Name": "sls-menu-qr-backend-production-LoginLambdaFunctionQualifiedArn"
+      }
+    },
+    "DeleteUserLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "DeleteUserLambdaVersionPtZ5QsGFMv9KR5DSRUz00Dppn5MarDzKLcjsWTPM"
+      },
+      "Export": {
+        "Name": "sls-menu-qr-backend-production-DeleteUserLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {

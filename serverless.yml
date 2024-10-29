@@ -3,34 +3,37 @@ service: menu-qr-backend
 provider:
   name: aws
   runtime: nodejs18.x
-  region: us-east-1
   timeout: 15
   stage: ${opt:stage, 'dev'}
+  region: us-east-1
+
   environment:
-    NODE_ENV: ${self:provider.stage}
     USERS_TABLE: MenuQrUsersTable-${opt:stage, 'dev'}
+    NODE_ENV: ${opt:stage, 'dev'}
+    DYNAMODB_ENDPOINT: http://localhost:8000
 
   iamRoleStatements:
-  - Effect: "Allow"
-    Action:
-      - "dynamodb:PutItem"
-      - "dynamodb:GetItem"
-      - "dynamodb:UpdateItem"
-      - "dynamodb:DeleteItem"
-      - "dynamodb:Scan"
-      - "dynamodb:Query"
-    Resource:
-      - "arn:aws:dynamodb:us-east-1:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+        - "dynamodb:Scan"
+        - "dynamodb:Query"
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}"
+        - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}/index/categoryId-index"  # Permitir acceso al índice
 
-  - Effect: "Allow"
-    Action:
-      - "execute-api:Invoke"
-    Resource:
-      - "arn:aws:execute-api:${self:provider.region}:${aws:accountId}:*/*"
+    - Effect: "Allow"
+      Action:
+        - "execute-api:Invoke"
+      Resource:
+        - "arn:aws:execute-api:${self:provider.region}:207567761860:*/*"
 
 functions:
   signup:
-    handler: handler.signup
+    handler: handlers/authHandler.signup
     events:
       - http:
           path: signup
@@ -43,7 +46,7 @@ functions:
             allowCredentials: true
 
   login:
-    handler: handler.login
+    handler: handlers/authHandler.login
     events:
       - http:
           path: login
@@ -53,10 +56,22 @@ functions:
             headers:
               - Content-Type
               - Authorization
+              - X-Amz-Date
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
             allowCredentials: true
 
+  deleteUser:
+    handler: handlers/authHandler.deleteUser
+    events:
+      - http:
+          path: user/{userId}
+          method: delete
+          cors: true
+
   home:
-    handler: handler.home
+    handler: handlers/handler.home
     events:
       - http:
           path: home
@@ -69,7 +84,7 @@ functions:
             allowCredentials: true
 
   menu:
-    handler: handler.menu
+    handler: handlers/handler.menu
     events:
       - http:
           path: menu
@@ -81,8 +96,20 @@ functions:
               - Authorization
             allowCredentials: true
 
+  publicRoute:
+    handler: handlers/handler.viewMenu
+    events:
+      - http:
+          path: view-menu/{userId}
+          method: get
+          cors:
+            origin: '*'  
+            headers:
+              - Content-Type
+            allowCredentials: false
+
   createCategory:
-    handler: handler.createCategory
+    handler: handlers/categoryHandler.createCategory
     events:
       - http:
           path: menu/category
@@ -95,7 +122,7 @@ functions:
             allowCredentials: true
 
   getCategories:
-    handler: handler.getCategories
+    handler: handlers/categoryHandler.getCategories
     events:
       - http:
           path: categories/{userId}
@@ -108,7 +135,7 @@ functions:
             allowCredentials: true
 
   deleteCategory:
-    handler: handler.deleteCategory
+    handler: handlers/categoryHandler.deleteCategory
     events:
       - http:
           path: menu/category/{categoryId}
@@ -121,7 +148,7 @@ functions:
             allowCredentials: true
 
   deleteProduct:
-    handler: handler.deleteProduct
+    handler: handlers/productHandler.deleteProduct
     events:
       - http:
           path: menu/category/{categoryId}/product/{productId}
@@ -134,7 +161,7 @@ functions:
             allowCredentials: true
 
   createProduct:
-    handler: handler.createProduct
+    handler: handlers/productHandler.createProduct
     events:
       - http:
           path: menu/category/{categoryId}/product
@@ -148,7 +175,7 @@ functions:
 
 resources:
   Resources:
-    MenuQrUsersTable:
+    UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: MenuQrUsersTable-${opt:stage, 'dev'}
@@ -164,14 +191,16 @@ resources:
             KeyType: HASH
           - AttributeName: SK
             KeyType: RANGE
-        BillingMode: PAY_PER_REQUEST
         GlobalSecondaryIndexes:
           - IndexName: categoryId-index
             KeySchema:
               - AttributeName: categoryId
                 KeyType: HASH
+              - AttributeName: SK
+                KeyType: RANGE
             Projection:
               ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
 
     GatewayResponse:
       Type: AWS::ApiGateway::GatewayResponse
