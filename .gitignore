@@ -1,1 +1,6 @@
 node_modules
+# Ignorar el archivo meta.json específico
+.serverless/meta.json
+
+# O, para ignorar toda la carpeta .serverless
+.serverless/
