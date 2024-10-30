@@ -241,3 +241,77 @@ export const deleteCategory: APIGatewayProxyHandler = async (event) => {
         };
     }
 };
+
+
+// Función para actualizar el nombre de una categoría
+export const updateCategory: APIGatewayProxyHandler = async (event) => {
+    const { categoryId } = event.pathParameters || {};
+    const { categoryName } = JSON.parse(event.body || '{}');
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const token = authHeader.split(' ')[1];
+    let userId;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as DefaultJwtPayload;
+        userId = decoded.userId;
+    } catch (error) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    if (!categoryId || !categoryName) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Category ID and name are required' }),
+        };
+    }
+
+    const params = {
+        TableName: USERS_TABLE,
+        Key: {
+            PK: `USER#${userId}`,
+            SK: `CATEGORY#${categoryId}`,
+        },
+        UpdateExpression: 'SET categoryName = :categoryName',
+        ExpressionAttributeValues: {
+            ':categoryName': categoryName,
+        },
+        ReturnValues: 'UPDATED_NEW',
+    };
+
+    try {
+        const result = await dynamoDb.update(params).promise();
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                message: 'Category updated successfully',
+                data: result.Attributes,
+            }),
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error updating category:', errorMessage);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                message: 'Error updating category',
+                error: errorMessage,
+            }),
+        };
+    }
+};

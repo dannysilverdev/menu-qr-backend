@@ -6,12 +6,10 @@ provider:
   timeout: 15
   stage: ${opt:stage, 'dev'}
   region: us-east-1
-
   environment:
     USERS_TABLE: MenuQrUsersTable-${opt:stage, 'dev'}
     NODE_ENV: ${opt:stage, 'dev'}
     DYNAMODB_ENDPOINT: http://localhost:8000
-
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -23,8 +21,7 @@ provider:
         - "dynamodb:Query"
       Resource:
         - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}"
-        - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}/index/categoryId-index"  # Permitir acceso al índice
-
+        - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}/index/categoryId-index"
     - Effect: "Allow"
       Action:
         - "execute-api:Invoke"
@@ -163,19 +160,6 @@ functions:
               - Authorization
             allowCredentials: true
 
-  deleteProduct:
-    handler: handlers/productHandler.deleteProduct
-    events:
-      - http:
-          path: menu/category/{categoryId}/product/{productId}
-          method: delete
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
   createProduct:
     handler: handlers/productHandler.createProduct
     events:
@@ -189,12 +173,51 @@ functions:
               - Authorization
             allowCredentials: true
 
+  updateProduct:
+    handler: handlers/productHandler.updateProduct
+    events:
+      - http:
+          path: product/{productId}
+          method: patch
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  deleteProduct:
+    handler: handlers/productHandler.deleteProduct
+    events:
+      - http:
+          path: menu/category/{categoryId}/product/{productId}
+          method: delete
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
   updateUserProfile:
     handler: handlers/authHandler.updateUserProfile
     events:
       - http:
           path: user/{username}
           method: patch
+          cors:
+            origin: 'https://dljrvybt2jogj.cloudfront.net'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  updateCategory:
+    handler: handlers/categoryHandler.updateCategory 
+    events:
+      - http:
+          path: menu/category/{categoryId}
+          method: put
           cors:
             origin: 'https://dljrvybt2jogj.cloudfront.net'
             headers:
