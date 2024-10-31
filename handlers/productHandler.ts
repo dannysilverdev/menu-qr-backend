@@ -87,6 +87,82 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
     }
 };
 
+// Función para actualizar un producto
+export const updateProduct: APIGatewayProxyHandler = async (event) => {
+    const { productId } = event.pathParameters || {};
+    const { productName, price, description } = JSON.parse(event.body || '{}');
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const token = authHeader.split(' ')[1];
+    let userId;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as DefaultJwtPayload;
+        userId = decoded.userId;
+    } catch (error) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    if (!productId || !productName || price == null || !description) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Product ID, name, price, and description are required' }),
+        };
+    }
+
+    const params = {
+        TableName: USERS_TABLE,
+        Key: {
+            PK: `USER#${userId}`,
+            SK: `PRODUCT#${productId}`,
+        },
+        UpdateExpression: 'SET productName = :productName, price = :price, description = :description',
+        ExpressionAttributeValues: {
+            ':productName': productName,
+            ':price': price,
+            ':description': description,
+        },
+        ReturnValues: 'UPDATED_NEW',
+    };
+
+    try {
+        const result = await dynamoDb.update(params).promise();
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                message: 'Product updated successfully',
+                data: result.Attributes,
+            }),
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error updating product:', errorMessage);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                message: 'Error updating product',
+                error: errorMessage,
+            }),
+        };
+    }
+};
+
+
 // Eliminar producto
 export const deleteProduct: APIGatewayProxyHandler = async (event) => {
     try {

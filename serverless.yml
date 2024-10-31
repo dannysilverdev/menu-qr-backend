@@ -177,8 +177,8 @@ functions:
     handler: handlers/productHandler.updateProduct
     events:
       - http:
-          path: product/{productId}
-          method: patch
+          path: menu/product/{productId}
+          method: put
           cors:
             origin: 'https://dljrvybt2jogj.cloudfront.net'
             headers:
