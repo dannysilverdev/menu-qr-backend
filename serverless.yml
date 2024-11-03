@@ -88,21 +88,21 @@ functions:
           cors: ${self:custom.corsPublic}
 
   # Update data
-  #updateCategory:
-  #  handler: handler.updateCategory
-  #  events:
-  #    - http:
-  #        path: menu/category/{categoryId}
-  #        method: put
-  #        cors: ${self:custom.corsConfig}
+#  updateCategory:
+#    handler: handler.updateCategory
+#    events:
+#      - http:
+#          path: menu/category/{categoryId}
+#          method: put
+#          cors: ${self:custom.corsConfigExtended}
 
-  # updateProduct:
-  #  handler: handler.updateProduct
-  #  events:
-  #    - http:
-  #        path: menu/product/{productId}
-  #        method: put
-  #         cors: ${self:custom.corsConfig}
+  updateProduct:
+    handler: handler.updateProduct
+    events:
+      - http:
+          path: menu/product/{productId}
+          method: put
+          cors: ${self:custom.corsConfigExtended}
 
   # Funciones de categorías
   createCategory:
@@ -187,7 +187,7 @@ resources:
         ResponseParameters:
           "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'"
           "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'"
-          "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
+          "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'"
           "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
 
         ResponseType: DEFAULT_4XX
@@ -216,6 +216,12 @@ custom:
       - X-Api-Key
       - X-Amz-Security-Token
       - X-Amz-User-Agent
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
     allowCredentials: true
 
   corsPublic: # Configuración CORS para rutas públicas
