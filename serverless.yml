@@ -19,8 +19,8 @@ provider:
         - "dynamodb:Scan"
         - "dynamodb:Query"
       Resource:
-        - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}"
-        - "arn:aws:dynamodb:${self:provider.region}:207567761860:table/MenuQrUsersTable-${opt:stage, 'dev'}/index/categoryId-index"
+        - "arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/MenuQrUsersTable-${opt:stage, 'dev'}"
+        - "arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/MenuQrUsersTable-${opt:stage, 'dev'}/index/categoryId-index"
     - Effect: "Allow"
       Action:
         - "execute-api:Invoke"
@@ -30,7 +30,7 @@ provider:
 functions:
   # Funciones de Registro y Login
   signup:
-    handler: handler.signup
+    handler: handlers/authHandler.signup
     events:
       - http:
           path: signup
@@ -38,7 +38,7 @@ functions:
           cors: ${self:custom.corsConfigExtended}
 
   login:
-    handler: handler.login
+    handler: handlers/authHandler.login
     events:
       - http:
           path: login
@@ -47,24 +47,24 @@ functions:
 
   # Funciones de usuario
   getUser:
-    handler: handler.getUser
+    handler: handlers/userHandler.getUser
     events:
       - http:
           path: user/{userId}
           method: get
           cors: ${self:custom.corsConfig}
 
-  #updateUserProfile:
-  #  handler: handler.updateUserProfile
-  #  events:
-  #    - http:
-  #        path: user/{userId}
-  #        method: put
-  #        cors: ${self:custom.corsConfig}
+  updateUserProfile:
+    handler: handler.updateUserProfile
+    events:
+      - http:
+          path: user/update/{userId}
+          method: put
+          cors: ${self:custom.corsConfigExtended}
 
   # Funciones de manejo del menú
   home:
-    handler: handler.home
+    handler: handlers/navigationHandler.home
     events:
       - http:
           path: home
@@ -72,7 +72,7 @@ functions:
           cors: ${self:custom.corsConfig}
 
   menu:
-    handler: handler.menu
+    handler: handlers/menuHandler.menu
     events:
       - http:
           path: menu
@@ -80,33 +80,33 @@ functions:
           cors: ${self:custom.corsConfig}
 
   viewMenu:
-    handler: handler.viewMenu
+    handler: handlers/navigationHandler.viewMenu
     events:
       - http:
           path: view-menu/{userId}
           method: get
           cors: ${self:custom.corsPublic}
 
-  # Update data
-#  updateCategory:
-#    handler: handler.updateCategory
-#    events:
-#      - http:
-#          path: menu/category/{categoryId}
-#          method: put
-#          cors: ${self:custom.corsConfigExtended}
-
-  updateProduct:
-    handler: handler.updateProduct
+# Update data
+  updateCategory:
+    handler: handlers/updateHandler.updateCategory
     events:
       - http:
-          path: menu/product/{productId}
+          path: menu/category/{categoryId}/update
+          method: put
+          cors: ${self:custom.corsConfigExtended}
+
+  updateProduct:
+    handler: handlers/updateHandler.updateProduct
+    events:
+      - http:
+          path: menu/product/{productId}/update
           method: put
           cors: ${self:custom.corsConfigExtended}
 
   # Funciones de categorías
   createCategory:
-    handler: handler.createCategory
+    handler: handlers/categoryHandler.createCategory
     events:
       - http:
           path: menu/category
@@ -114,37 +114,38 @@ functions:
           cors: ${self:custom.corsConfig}
 
   getCategories:
-    handler: handler.getCategories
+    handler: handlers/categoryHandler.getCategories
     events:
       - http:
           path: categories/{userId}
           method: get
           cors: ${self:custom.corsConfig}
 
-  deleteCategory:
-    handler: handler.deleteCategory
-    events:
-      - http:
-          path: menu/category/{categoryId}
-          method: delete
-          cors: ${self:custom.corsConfig}
+#  deleteCategory:
+#    handler: handlers/categoryHandler.deleteCategory
+#    events:
+#      - http:
+#          path: menu/category/{categoryId}
+#          method: delete
+#          cors: ${self:custom.corsConfig}
+
 
   # Funciones de productos
   createProduct:
-    handler: handler.createProduct
+    handler: handlers/productHandler.createProduct
     events:
       - http:
           path: menu/category/{categoryId}/product
           method: post
           cors: ${self:custom.corsConfig}
 
-  deleteProduct:
-    handler: handler.deleteProduct
-    events:
-      - http:
-          path: menu/category/{categoryId}/product/{productId}
-          method: delete
-          cors: ${self:custom.corsConfig}
+##  deleteProduct:
+#    handler: handlers/productHandler.deleteProduct
+#    events:
+#      - http:
+#          path: menu/category/{categoryId}/product/{productId}
+#          method: delete
+#          cors: ${self:custom.corsConfig}
 
 # ----------
 
@@ -198,6 +199,14 @@ plugins:
   - serverless-offline
 
 custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: true
+    target: 'node18'
+    exclude: ['aws-sdk']
+    concurrency: 10
+    
   defaultRegion: us-east-1
 
   corsConfig: # Configuración estándar CORS
