@@ -1,11 +1,10 @@
-const AWS = require('aws-sdk');
-
+import AWS from 'aws-sdk';
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
     endpoint: 'http://localhost:8000', // Cambia esto si estás usando un endpoint diferente
     region: 'us-east-1' // Reemplaza esto con tu región deseada
 });
 
-const tableName = 'MenuQrUsersTable';
+const tableName = 'MenuQrUsersTable-dev';
 
 const viewAllItems = async () => {
     try {

@@ -3,7 +3,6 @@ service: menu-qr-backend
 provider:
   name: aws
   runtime: nodejs18.x
-  timeout: 15
   stage: ${opt:stage, 'dev'}
   region: us-east-1
   environment:
@@ -27,206 +26,134 @@ provider:
         - "execute-api:Invoke"
       Resource:
         - "arn:aws:execute-api:${self:provider.region}:207567761860:*/*"
-
+        
 functions:
+  # Funciones de Registro y Login
   signup:
-    handler: handlers/authHandler.signup
+    handler: handler.signup
     events:
       - http:
           path: signup
           method: post
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfigExtended}
 
   login:
-    handler: handlers/authHandler.login
+    handler: handler.login
     events:
       - http:
           path: login
           method: post
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-              - X-Amz-Date
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            allowCredentials: true
+          cors: ${self:custom.corsConfigExtended}
 
+  # Funciones de usuario
   getUser:
-    handler: handlers/authHandler.getUser
+    handler: handler.getUser
     events:
       - http:
           path: user/{userId}
           method: get
-          cors: true
+          cors: ${self:custom.corsConfig}
 
-  updateUser:
-    handler: handlers/authHandler.updateUser
-    events:
-      - http:
-          path: user/{userId}
-          method: put
-          cors: true
+  #updateUserProfile:
+  #  handler: handler.updateUserProfile
+  #  events:
+  #    - http:
+  #        path: user/{userId}
+  #        method: put
+  #        cors: ${self:custom.corsConfig}
 
-  deleteUser:
-    handler: handlers/authHandler.deleteUser
-    events:
-      - http:
-          path: user/{userId}
-          method: delete
-          cors: true
-
+  # Funciones de manejo del menú
   home:
-    handler: handlers/handler.home
+    handler: handler.home
     events:
       - http:
           path: home
           method: get
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
   menu:
-    handler: handlers/handler.menu
+    handler: handler.menu
     events:
       - http:
           path: menu
           method: get
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
-  publicRoute:
-    handler: handlers/handler.viewMenu
+  viewMenu:
+    handler: handler.viewMenu
     events:
       - http:
           path: view-menu/{userId}
           method: get
-          cors:
-            origin: '*'  
-            headers:
-              - Content-Type
-            allowCredentials: false
+          cors: ${self:custom.corsPublic}
 
+  # Update data
+  #updateCategory:
+  #  handler: handler.updateCategory
+  #  events:
+  #    - http:
+  #        path: menu/category/{categoryId}
+  #        method: put
+  #        cors: ${self:custom.corsConfig}
+
+  # updateProduct:
+  #  handler: handler.updateProduct
+  #  events:
+  #    - http:
+  #        path: menu/product/{productId}
+  #        method: put
+  #         cors: ${self:custom.corsConfig}
+
+  # Funciones de categorías
   createCategory:
-    handler: handlers/categoryHandler.createCategory
+    handler: handler.createCategory
     events:
       - http:
           path: menu/category
           method: post
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
   getCategories:
-    handler: handlers/categoryHandler.getCategories
+    handler: handler.getCategories
     events:
       - http:
           path: categories/{userId}
           method: get
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
   deleteCategory:
-    handler: handlers/categoryHandler.deleteCategory
+    handler: handler.deleteCategory
     events:
       - http:
           path: menu/category/{categoryId}
           method: delete
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
+  # Funciones de productos
   createProduct:
-    handler: handlers/productHandler.createProduct
+    handler: handler.createProduct
     events:
       - http:
           path: menu/category/{categoryId}/product
           method: post
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
-  updateProduct:
-    handler: handlers/productHandler.updateProduct
-    events:
-      - http:
-          path: menu/product/{productId}
-          method: put
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
   deleteProduct:
-    handler: handlers/productHandler.deleteProduct
+    handler: handler.deleteProduct
     events:
       - http:
           path: menu/category/{categoryId}/product/{productId}
           method: delete
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+          cors: ${self:custom.corsConfig}
 
-  updateUserProfile:
-    handler: handlers/authHandler.updateUserProfile
-    events:
-      - http:
-          path: user/{username}
-          method: patch
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
-
-  updateCategory:
-    handler: handlers/categoryHandler.updateCategory 
-    events:
-      - http:
-          path: menu/category/{categoryId}
-          method: put
-          cors:
-            origin: 'https://dljrvybt2jogj.cloudfront.net'
-            headers:
-              - Content-Type
-              - Authorization
-            allowCredentials: true
+# ----------
 
 resources:
   Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: ${self:service}-${self:provider.stage}
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -260,8 +187,9 @@ resources:
         ResponseParameters:
           "gatewayresponse.header.Access-Control-Allow-Origin": "'https://dljrvybt2jogj.cloudfront.net'"
           "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type, Authorization'"
-          "gatewayresponse.header.Access-Control-Allow-Methods": "'GET, POST, OPTIONS'"
+          "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
           "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
+
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: ApiGatewayRestApi
@@ -272,13 +200,43 @@ plugins:
 custom:
   defaultRegion: us-east-1
 
+  corsConfig: # Configuración estándar CORS
+    origin: 'https://dljrvybt2jogj.cloudfront.net'
+    headers:
+      - Content-Type
+      - Authorization
+    allowCredentials: true
+
+  corsConfigExtended: # Configuración CORS extendida
+    origin: 'https://dljrvybt2jogj.cloudfront.net'
+    headers:
+      - Content-Type
+      - Authorization
+      - X-Amz-Date
+      - X-Api-Key
+      - X-Amz-Security-Token
+      - X-Amz-User-Agent
+    allowCredentials: true
+
+  corsPublic: # Configuración CORS para rutas públicas
+    origin: '*'
+    headers:
+      - Content-Type
+    allowCredentials: false
+
 package:
   individually: true
   excludeDevDependencies: true
-  exclude:
-    - .git/**
-    - .vscode/**
-    - tests/**
-    - docs/**
-    - "*.md" 
-    - node_modules/aws-sdk/**
+  patterns:
+    - '!.git/**'
+    - '!.vscode/**'
+    - '!tests/**'
+    - '!.env*'
+    - '!docs/**'
+    - '!*.md'
+    - '!**/*.ts'
+    - '!**/*.d.ts'
+    - '!node_modules/aws-sdk/**'
+    - '!node_modules/.bin/**'
+    - '!.serverless/**'
+    - '!package-lock.json'
