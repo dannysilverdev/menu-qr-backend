@@ -8,6 +8,7 @@ provider:
   environment:
     USERS_TABLE: MenuQrUsersTable-${opt:stage, 'dev'}
     NODE_ENV: ${opt:stage, 'dev'}
+    NODE_OPTIONS: "--max-old-space-size=8192"
     DYNAMODB_ENDPOINT: http://localhost:8000
   iamRoleStatements:
     - Effect: "Allow"
@@ -25,7 +26,7 @@ provider:
       Action:
         - "execute-api:Invoke"
       Resource:
-        - "arn:aws:execute-api:${self:provider.region}:207567761860:*/*"
+        - "arn:aws:execute-api:${self:provider.region}:${aws:accountId}:*/*"
         
 functions:
   # Funciones de Registro y Login
@@ -55,7 +56,7 @@ functions:
           cors: ${self:custom.corsConfig}
 
   updateUserProfile:
-    handler: handler.updateUserProfile
+    handler: handlers/updateHandler.updateUserProfile
     events:
       - http:
           path: user/update/{userId}
@@ -121,13 +122,13 @@ functions:
           method: get
           cors: ${self:custom.corsConfig}
 
-#  deleteCategory:
-#    handler: handlers/categoryHandler.deleteCategory
-#    events:
-#      - http:
-#          path: menu/category/{categoryId}
-#          method: delete
-#          cors: ${self:custom.corsConfig}
+  deleteCategory:
+    handler: handlers/categoryHandler.deleteCategory
+    events:
+      - http:
+          path: menu/category/{categoryId}
+          method: delete
+          cors: ${self:custom.corsConfig}
 
 
   # Funciones de productos
@@ -139,13 +140,13 @@ functions:
           method: post
           cors: ${self:custom.corsConfig}
 
-##  deleteProduct:
-#    handler: handlers/productHandler.deleteProduct
-#    events:
-#      - http:
-#          path: menu/category/{categoryId}/product/{productId}
-#          method: delete
-#          cors: ${self:custom.corsConfig}
+  deleteProduct:
+    handler: handlers/productHandler.deleteProduct
+    events:
+      - http:
+          path: menu/category/{categoryId}/product/{productId}
+          method: delete
+          cors: ${self:custom.corsConfig}
 
 # ----------
 
@@ -200,12 +201,12 @@ plugins:
 
 custom:
   esbuild:
-    bundle: true
-    minify: true
+    bundle: false
+    minify: false
     sourcemap: true
     target: 'node18'
     exclude: ['aws-sdk']
-    concurrency: 10
+    concurrency: 15
     
   defaultRegion: us-east-1
 

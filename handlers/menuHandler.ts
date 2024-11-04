@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import jwt, { JwtPayload as DefaultJwtPayload } from 'jsonwebtoken';
-import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config'
+import { corsHeaders, JWT_SECRET } from './config'
 
 /**
  * MENU PAGE
