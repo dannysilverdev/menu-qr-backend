@@ -1,6 +1,23 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import jwt from 'jsonwebtoken';
-import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config'
+import { jwtVerify } from 'jose';
+import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config.js';
+import { QueryCommand } from '@aws-sdk/lib-dynamodb';
+
+/**
+ * Función para verificar un token JWT
+ * @param token - El token JWT
+ * @returns El payload decodificado si es válido, de lo contrario lanza un error
+ */
+const verifyToken = async (token: string) => {
+    const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
+    try {
+        const { payload } = await jwtVerify(token, jwtSecretKey);
+        return payload;
+    } catch (error) {
+        console.error('Token verification failed:', error);
+        throw new Error('Unauthorized');
+    }
+};
 
 // ==========================================
 // NAVIGATION FUNCTIONS
@@ -22,7 +39,7 @@ export const home: APIGatewayProxyHandler = async (event) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        jwt.verify(token, JWT_SECRET);
+        await verifyToken(token);
         return {
             statusCode: 200,
             headers: corsHeaders,
@@ -48,6 +65,7 @@ export const viewMenu: APIGatewayProxyHandler = async (event) => {
     if (!userId) {
         return {
             statusCode: 400,
+            headers: corsHeaders,
             body: JSON.stringify({
                 message: "Missing userId in the request",
             }),
@@ -65,7 +83,7 @@ export const viewMenu: APIGatewayProxyHandler = async (event) => {
             },
         };
 
-        const categoryResult = await dynamoDb.query(categoryParams).promise();
+        const categoryResult = await dynamoDb.send(new QueryCommand(categoryParams));
         console.log("Fetched categories:", categoryResult.Items);
 
         // Itera sobre cada categoría y realiza una consulta para obtener sus productos
@@ -81,7 +99,7 @@ export const viewMenu: APIGatewayProxyHandler = async (event) => {
                     },
                 };
 
-                const productsResult = await dynamoDb.query(productsParams).promise();
+                const productsResult = await dynamoDb.send(new QueryCommand(productsParams));
                 console.log(`Products for category ${categoryItem.categoryName}:`, productsResult.Items);
 
                 // Mapea los productos recuperados

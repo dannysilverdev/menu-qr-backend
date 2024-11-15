@@ -1,16 +1,21 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import jwt, { JwtPayload as DefaultJwtPayload } from 'jsonwebtoken';
-import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config';
+import { jwtVerify } from 'jose';
+import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config.js';
+import { uploadImageToS3 } from './uploadImageToS3.js';
+import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { ReturnValue } from '@aws-sdk/client-dynamodb';
 
 // Función para verificar el token y extraer userId
-const getUserIdFromToken = (authHeader: string | undefined): string | null => {
+const getUserIdFromToken = async (authHeader: string | undefined): Promise<string | null> => {
     if (!authHeader) return null;
 
     const token = authHeader.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as DefaultJwtPayload;
-        return decoded.userId;
+        const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
+        const { payload } = await jwtVerify(token, jwtSecretKey);
+        return payload.userId as string | null;
     } catch (error) {
+        console.error('Token verification failed:', error);
         return null;
     }
 };
@@ -38,7 +43,7 @@ const validateParameters = (params: Record<string, any>, requiredParams: string[
 export const updateCategory: APIGatewayProxyHandler = async (event) => {
     const { categoryId } = event.pathParameters || {};
     const { categoryName } = JSON.parse(event.body || '{}');
-    const userId = getUserIdFromToken(event.headers.Authorization || event.headers.authorization);
+    const userId = await getUserIdFromToken(event.headers.Authorization || event.headers.authorization);
 
     if (!userId) {
         return generateResponse(401, 'Invalid or expired token');
@@ -53,11 +58,11 @@ export const updateCategory: APIGatewayProxyHandler = async (event) => {
         Key: { PK: `USER#${userId}`, SK: `CATEGORY#${categoryId}` },
         UpdateExpression: 'SET categoryName = :categoryName',
         ExpressionAttributeValues: { ':categoryName': categoryName },
-        ReturnValues: 'UPDATED_NEW',
+        ReturnValues: ReturnValue.UPDATED_NEW,
     };
 
     try {
-        const result = await dynamoDb.update(params).promise();
+        const result = await dynamoDb.send(new UpdateCommand(params));
         return generateResponse(200, 'Category updated successfully', { data: result.Attributes });
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -72,7 +77,7 @@ export const updateCategory: APIGatewayProxyHandler = async (event) => {
 export const updateProduct: APIGatewayProxyHandler = async (event) => {
     const { productId } = event.pathParameters || {};
     const { productName, price, description } = JSON.parse(event.body || '{}');
-    const userId = getUserIdFromToken(event.headers.Authorization || event.headers.authorization);
+    const userId = await getUserIdFromToken(event.headers.Authorization || event.headers.authorization);
 
     if (!userId) {
         return generateResponse(401, 'Invalid or expired token');
@@ -91,11 +96,11 @@ export const updateProduct: APIGatewayProxyHandler = async (event) => {
             ':price': price,
             ':description': description,
         },
-        ReturnValues: 'UPDATED_NEW',
+        ReturnValues: ReturnValue.UPDATED_NEW,
     };
 
     try {
-        const result = await dynamoDb.update(params).promise();
+        const result = await dynamoDb.send(new UpdateCommand(params));
         return generateResponse(200, 'Product updated successfully', { data: result.Attributes });
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -104,12 +109,10 @@ export const updateProduct: APIGatewayProxyHandler = async (event) => {
     }
 };
 
-
 /**
  * Update User Profile Handler
  * Updates user profile information
  */
-// Guardado automatico para informacion de perfil
 export const updateUserProfile: APIGatewayProxyHandler = async (event) => {
     const userId = event.pathParameters?.userId;
     const token = event.headers?.Authorization?.split(' ')[1];
@@ -123,8 +126,10 @@ export const updateUserProfile: APIGatewayProxyHandler = async (event) => {
     }
 
     try {
-        jwt.verify(token, JWT_SECRET);
+        const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
+        await jwtVerify(token, jwtSecretKey);
     } catch (error) {
+        console.error('Token verification failed:', error);
         return {
             statusCode: 401,
             headers: corsHeaders,
@@ -133,16 +138,42 @@ export const updateUserProfile: APIGatewayProxyHandler = async (event) => {
     }
 
     const updates = JSON.parse(event.body || '{}');
-    console.log("Datos de actualización recibidos:", updates);
-
     const updateExpressions: string[] = [];
-    const expressionAttributeValues: { [key: string]: any } = {}; // Definir tipo explícito
+    const expressionAttributeValues: { [key: string]: any } = {};
     const expressionAttributeNames: { [key: string]: string } = {};
 
+    let imageUrl: string | undefined;
+
+    if (updates.image && updates.imageBuffer) {
+        try {
+            const imageBuffer = Buffer.from(updates.imageBuffer, 'base64');
+            imageUrl = await uploadImageToS3(userId, imageBuffer);
+            updates.imageUrl = imageUrl;
+
+            if (!expressionAttributeNames['#imageUrl']) {
+                updateExpressions.push('#imageUrl = :imageUrl');
+                expressionAttributeValues[':imageUrl'] = imageUrl;
+                expressionAttributeNames['#imageUrl'] = 'imageUrl';
+            }
+
+            delete updates.image;
+            delete updates.imageBuffer;
+        } catch (error) {
+            console.error('Error al subir la imagen:', error);
+            return {
+                statusCode: 500,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: 'Error al subir la imagen', error: error instanceof Error ? error.message : 'Unknown error' }),
+            };
+        }
+    }
+
     for (const [key, value] of Object.entries(updates)) {
-        updateExpressions.push(`#${key} = :${key}`);
-        expressionAttributeValues[`:${key}`] = value; // TypeScript ahora reconocerá este acceso dinámico
-        expressionAttributeNames[`#${key}`] = key;
+        if (!expressionAttributeNames[`#${key}`]) {
+            updateExpressions.push(`#${key} = :${key}`);
+            expressionAttributeValues[`:${key}`] = value;
+            expressionAttributeNames[`#${key}`] = key;
+        }
     }
 
     if (updateExpressions.length === 0) {
@@ -159,13 +190,11 @@ export const updateUserProfile: APIGatewayProxyHandler = async (event) => {
         UpdateExpression: `SET ${updateExpressions.join(', ')}`,
         ExpressionAttributeValues: expressionAttributeValues,
         ExpressionAttributeNames: expressionAttributeNames,
-        ReturnValues: 'UPDATED_NEW',
+        ReturnValues: ReturnValue.UPDATED_NEW,
     };
 
     try {
-        console.log("Parámetros de actualización de DynamoDB:", updateParams);
-        const result = await dynamoDb.update(updateParams).promise();
-        console.log("Resultado de la actualización en DynamoDB:", result);
+        const result = await dynamoDb.send(new UpdateCommand(updateParams));
         return {
             statusCode: 200,
             headers: corsHeaders,

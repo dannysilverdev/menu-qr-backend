@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import jwt from 'jsonwebtoken';
-import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config'
+import { corsHeaders, USERS_TABLE, dynamoDb } from './config.js';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 
 // ==========================================
 // USER PROFILE MANAGEMENT
@@ -29,7 +29,9 @@ export const getUser: APIGatewayProxyHandler = async (event) => {
     };
 
     try {
-        const { Item } = await dynamoDb.get(params).promise();
+        const result = await dynamoDb.send(new GetCommand(params));
+        const { Item } = result;
+
         if (!Item) {
             return {
                 statusCode: 404,
@@ -44,7 +46,7 @@ export const getUser: APIGatewayProxyHandler = async (event) => {
             body: JSON.stringify(Item),
         };
     } catch (error) {
-        //console.error('Error fetching user data:', error);
+        console.error('Error fetching user data:', error);
         return {
             statusCode: 500,
             headers: corsHeaders,

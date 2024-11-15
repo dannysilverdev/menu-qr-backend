@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import jwt, { JwtPayload as DefaultJwtPayload } from 'jsonwebtoken';
-import { corsHeaders, JWT_SECRET } from './config'
+import { jwtVerify } from 'jose';
+import { corsHeaders, JWT_SECRET } from './config.js';
 
 /**
  * MENU PAGE
@@ -19,10 +19,11 @@ export const menu: APIGatewayProxyHandler = async (event) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as DefaultJwtPayload; // Asegúrate de que es un JwtPayload
+        const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
+        const { payload } = await jwtVerify(token, jwtSecretKey);
 
-        // Verifica si userId está presente en el token decodificado
-        if (!decoded.userId) {
+        // Verifica si userId está presente en el payload decodificado
+        if (!payload.userId) {
             return {
                 statusCode: 403,
                 headers: corsHeaders,
@@ -33,9 +34,10 @@ export const menu: APIGatewayProxyHandler = async (event) => {
         return {
             statusCode: 200,
             headers: corsHeaders,
-            body: JSON.stringify({ message: 'Welcome to the menu page!', userId: decoded.userId }), // Devuelve el userId
+            body: JSON.stringify({ message: 'Welcome to the menu page!', userId: payload.userId }), // Devuelve el userId
         };
     } catch (error) {
+        console.error('Token verification failed:', error);
         return {
             statusCode: 403,
             headers: corsHeaders,

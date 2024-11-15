@@ -6,9 +6,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: us-east-1
   environment:
+    BUCKET_NAME: ${env:BUCKET_NAME, 'mi-bucket-de-produccion'}
     USERS_TABLE: MenuQrUsersTable-${opt:stage, 'dev'}
     NODE_ENV: ${opt:stage, 'dev'}
-    NODE_OPTIONS: "--max-old-space-size=8192"
+#    NODE_OPTIONS: "--max-old-space-size=8192"
     DYNAMODB_ENDPOINT: http://localhost:8000
   iamRoleStatements:
     - Effect: "Allow"
@@ -19,6 +20,7 @@ provider:
         - "dynamodb:DeleteItem"
         - "dynamodb:Scan"
         - "dynamodb:Query"
+        - "s3:GetObject"
       Resource:
         - "arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/MenuQrUsersTable-${opt:stage, 'dev'}"
         - "arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/MenuQrUsersTable-${opt:stage, 'dev'}/index/categoryId-index"
@@ -27,7 +29,10 @@ provider:
         - "execute-api:Invoke"
       Resource:
         - "arn:aws:execute-api:${self:provider.region}:${aws:accountId}:*/*"
-        
+
+# Carga variables de entorno desde .env
+useDotenv: true
+
 functions:
   # Funciones de Registro y Login
   signup:
@@ -57,6 +62,7 @@ functions:
 
   updateUserProfile:
     handler: handlers/updateHandler.updateUserProfile
+    timeout: 30
     events:
       - http:
           path: user/update/{userId}
@@ -105,7 +111,7 @@ functions:
           method: put
           cors: ${self:custom.corsConfigExtended}
 
-  # Funciones de categorías
+# Funciones de categorías
   createCategory:
     handler: handlers/categoryHandler.createCategory
     events:
@@ -199,14 +205,15 @@ resources:
 plugins:
   - serverless-offline
 
-custom:
-  esbuild:
-    bundle: false
-    minify: false
-    sourcemap: true
-    target: 'node18'
-    exclude: ['aws-sdk']
-    concurrency: 15
+custom:    
+#  esbuild: false 
+#  esbuild:
+#    bundle: false
+#    minify: false
+#    sourcemap: true
+#    target: 'node18'
+#    exclude: ['aws-sdk']
+#    concurrency: 15
     
   defaultRegion: us-east-1
 
@@ -243,16 +250,16 @@ custom:
 package:
   individually: true
   excludeDevDependencies: true
-  patterns:
-    - '!.git/**'
-    - '!.vscode/**'
-    - '!tests/**'
-    - '!.env*'
-    - '!docs/**'
-    - '!*.md'
-    - '!**/*.ts'
-    - '!**/*.d.ts'
-    - '!node_modules/aws-sdk/**'
-    - '!node_modules/.bin/**'
-    - '!.serverless/**'
-    - '!package-lock.json'
+#  patterns:
+#    - '!.git/**'
+#    - '!.vscode/**'
+#    - '!tests/**'
+#    - '!.env*'
+#    - '!docs/**'
+#    - '!*.md'
+#    - '!**/*.ts'
+#    - '!**/*.d.ts'
+#    - '!node_modules/aws-sdk/**'
+#    - '!node_modules/.bin/**'
+#    - '!.serverless/**'
+#    - '!package-lock.json'
