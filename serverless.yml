@@ -154,6 +154,14 @@ functions:
           method: delete
           cors: ${self:custom.corsConfig}
 
+  updateProductStatus:
+    handler: handlers/productHandler.updateProductStatus
+    events:
+      - http:
+          path: menu/category/{categoryId}/product/{productId}/status
+          method: put
+          cors: ${self:custom.corsConfig}
+
 # ----------
 
 resources:

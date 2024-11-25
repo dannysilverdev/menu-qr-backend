@@ -79,6 +79,7 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
             price,
             description,
             createdAt,
+            isActive: true, // Agregamos el campo isActive por defecto como true
         },
     };
 
@@ -95,6 +96,7 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
                     description,
                     productId,
                     createdAt,
+                    isActive: true, // También lo incluimos en la respuesta
                 },
             }),
         };

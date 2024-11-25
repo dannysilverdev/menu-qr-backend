@@ -12,6 +12,7 @@ interface Product {
     productId: string;
     createdAt: string;
     categoryId: string;
+    isActive: boolean;
 }
 
 interface Category {
@@ -141,8 +142,10 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
             productId: product.SK.split('#')[1],
             createdAt: product.createdAt,
             categoryId: product.categoryId,
+            isActive: product.isActive === undefined ? true : product.isActive, // Manejar productos sin isActive
         }));
 
+        // Organizar productos por categoría
         const categoryMap: { [key: string]: Product[] } = {};
         products.forEach(product => {
             const categoryKey = product.categoryId;
@@ -152,9 +155,13 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
             categoryMap[categoryKey].push(product);
         });
 
+        // Asignar productos a sus categorías correspondientes
         const categoriesWithProducts: Category[] = categories.map(category => ({
             ...category,
-            products: categoryMap[category.SK] || [],
+            products: (categoryMap[category.SK] || []).map(product => ({
+                ...product,
+                isActive: product.isActive ?? true // Asegurar que isActive tenga un valor por defecto
+            })),
         }));
 
         return {

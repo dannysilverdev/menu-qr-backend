@@ -76,7 +76,7 @@ export const updateCategory: APIGatewayProxyHandler = async (event) => {
  */
 export const updateProduct: APIGatewayProxyHandler = async (event) => {
     const { productId } = event.pathParameters || {};
-    const { productName, price, description } = JSON.parse(event.body || '{}');
+    const { productName, price, description, isActive } = JSON.parse(event.body || '{}');
     const userId = await getUserIdFromToken(event.headers.Authorization || event.headers.authorization);
 
     if (!userId) {
@@ -87,15 +87,25 @@ export const updateProduct: APIGatewayProxyHandler = async (event) => {
         return generateResponse(400, 'Product ID, name, price, and description are required');
     }
 
+    // Construir la expresión de actualización incluyendo isActive si se proporciona
+    let updateExpression = 'SET productName = :productName, price = :price, description = :description';
+    let expressionAttributeValues: any = {
+        ':productName': productName,
+        ':price': price,
+        ':description': description,
+    };
+
+    // Agregar isActive a la actualización si se proporciona
+    if (typeof isActive === 'boolean') {
+        updateExpression += ', isActive = :isActive';
+        expressionAttributeValues[':isActive'] = isActive;
+    }
+
     const params = {
         TableName: USERS_TABLE,
         Key: { PK: `USER#${userId}`, SK: `PRODUCT#${productId}` },
-        UpdateExpression: 'SET productName = :productName, price = :price, description = :description',
-        ExpressionAttributeValues: {
-            ':productName': productName,
-            ':price': price,
-            ':description': description,
-        },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
         ReturnValues: ReturnValue.UPDATED_NEW,
     };
 

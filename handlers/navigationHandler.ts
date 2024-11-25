@@ -107,6 +107,7 @@ export const viewMenu: APIGatewayProxyHandler = async (event) => {
                     productName: productItem.productName,
                     price: productItem.price,
                     description: productItem.description,
+                    status: productItem.isActive,
                     productId: productItem.SK.split("#")[1],
                 })) || [];
 
