@@ -162,6 +162,15 @@ functions:
           method: put
           cors: ${self:custom.corsConfig}
 
+  reorderProducts:
+    handler: handlers/productHandler.reorderProducts
+    events:
+      - http:
+          path: menu/category/{categoryId}/reorder
+          method: post
+          cors: ${self:custom.corsConfigExtended}
+
+
 # ----------
 
 resources:

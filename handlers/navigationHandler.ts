@@ -103,13 +103,16 @@ export const viewMenu: APIGatewayProxyHandler = async (event) => {
                 console.log(`Products for category ${categoryItem.categoryName}:`, productsResult.Items);
 
                 // Mapea los productos recuperados
-                const products = productsResult.Items?.map((productItem) => ({
-                    productName: productItem.productName,
-                    price: productItem.price,
-                    description: productItem.description,
-                    status: productItem.isActive,
-                    productId: productItem.SK.split("#")[1],
-                })) || [];
+                const products = productsResult.Items
+                    ?.map((productItem) => ({
+                        productName: productItem.productName,
+                        price: productItem.price,
+                        description: productItem.description,
+                        status: productItem.isActive,
+                        productId: productItem.SK.split("#")[1],
+                        order: productItem.order, // Incluye el atributo `order`
+                    }))
+                    .sort((a, b) => a.order - b.order) || [];
 
                 return {
                     categoryName: categoryItem.categoryName,

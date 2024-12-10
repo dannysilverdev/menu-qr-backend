@@ -2,7 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { jwtVerify } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
 import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config.js';
-import { PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, DeleteCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 // Función para verificar el token y extraer userId
 const getUserIdFromToken = async (authHeader: string | undefined): Promise<string | null> => {
@@ -25,7 +25,6 @@ const getUserIdFromToken = async (authHeader: string | undefined): Promise<strin
 
 /**
  * CREATE PRODUCT
- * Función para crear un producto en una categoría
  */
 export const createProduct: APIGatewayProxyHandler = async (event) => {
     const { categoryId } = event.pathParameters || {};
@@ -56,7 +55,8 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
         };
     }
 
-    const { productName, price, description } = JSON.parse(event.body || '{}');
+    const body = event.body ? JSON.parse(event.body) : {};
+    const { productName, price, description } = body;
 
     if (!productName || !price || !description) {
         return {
@@ -69,6 +69,20 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
     const productId = uuidv4();
     const createdAt = new Date().toISOString();
 
+    const { Items: existingProducts } = await dynamoDb.send(
+        new ScanCommand({
+            TableName: USERS_TABLE,
+            FilterExpression: "PK = :userId AND begins_with(SK, :productPrefix) AND categoryId = :categoryId",
+            ExpressionAttributeValues: {
+                ":userId": `USER#${userId}`,
+                ":productPrefix": `PRODUCT#`,
+                ":categoryId": `CATEGORY#${categoryId}`,
+            },
+        })
+    );
+
+    const order = (existingProducts?.length || 0) + 1;
+
     const params = {
         TableName: USERS_TABLE,
         Item: {
@@ -79,7 +93,8 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
             price,
             description,
             createdAt,
-            isActive: true, // Agregamos el campo isActive por defecto como true
+            isActive: true,
+            order,
         },
     };
 
@@ -96,71 +111,77 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
                     description,
                     productId,
                     createdAt,
-                    isActive: true, // También lo incluimos en la respuesta
+                    isActive: true,
+                    order,
                 },
             }),
         };
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        console.error('Error creating product:', errorMessage);
+        console.error('Error creating product:', error);
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({ message: 'Error creating product', error: errorMessage }),
+            body: JSON.stringify({ message: 'Error creating product', error: error instanceof Error ? error.message : 'Unknown error' }),
         };
     }
 };
 
 /**
- * DELETE PRODUCT
- * Eliminar producto
+ * REORDER PRODUCTS
  */
-export const deleteProduct: APIGatewayProxyHandler = async (event) => {
-    try {
-        // Obtén parámetros y valida token
-        const { categoryId, productId } = event.pathParameters || {};
-        const authHeader = event.headers.Authorization || event.headers.authorization;
+export const reorderProducts: APIGatewayProxyHandler = async (event) => {
+    const { categoryId } = event.pathParameters || {};
+    const body = event.body ? JSON.parse(event.body) : {};
+    const { products } = body; // Recibe un arreglo con productId y order
+    const authHeader = event.headers.Authorization || event.headers.authorization;
 
-        if (!authHeader || !categoryId || !productId) {
-            return {
-                statusCode: 400,
-                headers: corsHeaders,
-                body: JSON.stringify({ message: 'Missing parameters or token' }),
-            };
-        }
-
-        const userId = await getUserIdFromToken(authHeader);
-        if (!userId) {
-            return {
-                statusCode: 403,
-                headers: corsHeaders,
-                body: JSON.stringify({ message: 'Invalid or expired token' }),
-            };
-        }
-
-        // Configuración de eliminación
-        const deleteParams = {
-            TableName: USERS_TABLE,
-            Key: {
-                PK: `USER#${userId}`,
-                SK: `PRODUCT#${productId}`,
-            },
+    const userId = await getUserIdFromToken(authHeader);
+    if (!userId || !categoryId || !products) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid input' }),
         };
+    }
 
-        // Elimina producto de DynamoDB
-        await dynamoDb.send(new DeleteCommand(deleteParams));
+    if (!Array.isArray(products) || products.some(p => !p.productId || p.order === undefined)) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid products format' }),
+        };
+    }
+
+    try {
+        for (const { productId, order } of products) {
+            const updateParams = {
+                TableName: USERS_TABLE,
+                Key: {
+                    PK: `USER#${userId}`,
+                    SK: `PRODUCT#${productId}`,
+                },
+                UpdateExpression: "SET #order = :order",
+                ExpressionAttributeNames: {
+                    "#order": "order",
+                },
+                ExpressionAttributeValues: {
+                    ":order": order,
+                },
+            };
+            await dynamoDb.send(new UpdateCommand(updateParams));
+        }
+
         return {
             statusCode: 200,
             headers: corsHeaders,
-            body: JSON.stringify({ message: 'Product deleted successfully' }),
+            body: JSON.stringify({ message: 'Products reordered successfully' }),
         };
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Error in deleteProduct:', errorMessage);
+        console.error('Error reordering products:', error);
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({ message: 'Error deleting product', error: errorMessage }),
+            body: JSON.stringify({ message: 'Error reordering products', error: error instanceof Error ? error.message : 'Unknown error' }),
         };
     }
 };
