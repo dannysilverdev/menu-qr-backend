@@ -2,7 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { jwtVerify } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
 import { corsHeaders, USERS_TABLE, dynamoDb, JWT_SECRET } from './config.js';
-import { PutCommand, QueryCommand, DeleteCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, QueryCommand, DeleteCommand, BatchWriteCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 // Type definitions
 interface Product {
@@ -19,6 +19,7 @@ interface Category {
     categoryName: string;
     SK: string;
     products: Product[];
+    order: number; // Nuevo campo
 }
 
 // Función para verificar el token y extraer userId
@@ -46,27 +47,57 @@ const getUserIdFromToken = async (authHeader: string | undefined): Promise<strin
  */
 export const createCategory: APIGatewayProxyHandler = async (event) => {
     const { userId, categoryName } = JSON.parse(event.body || '{}');
-    const categoryId = uuidv4(); // Generar un ID único para la categoría
 
-    const params = {
-        TableName: USERS_TABLE,
-        Item: {
-            PK: `USER#${userId}`,  // Clave primaria del usuario
-            SK: `CATEGORY#${categoryId}`, // Clave secundaria para la categoría
-            categoryName, // Nombre de la categoría
-            createdAt: new Date().toISOString(), // Fecha de creación
-        },
-    };
+    if (!userId || !categoryName) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                message: 'Missing userId or categoryName in the request',
+            }),
+        };
+    }
 
     try {
+        // Obtener el número de categorías actuales para calcular el orden
+        const categoriesParams = {
+            TableName: USERS_TABLE,
+            KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+            ExpressionAttributeValues: {
+                ':pk': `USER#${userId}`,
+                ':skPrefix': 'CATEGORY#',
+            },
+        };
+
+        const categoriesResult = await dynamoDb.send(new QueryCommand(categoriesParams));
+        const currentCategoriesCount = categoriesResult.Items?.length || 0;
+
+        // Asignar el orden como el siguiente índice
+        const order = currentCategoriesCount + 1;
+
+        const categoryId = uuidv4(); // Generar un ID único para la categoría
+
+        const params = {
+            TableName: USERS_TABLE,
+            Item: {
+                PK: `USER#${userId}`, // Clave primaria del usuario
+                SK: `CATEGORY#${categoryId}`, // Clave secundaria para la categoría
+                categoryName, // Nombre de la categoría
+                order, // Número de orden de la categoría
+                createdAt: new Date().toISOString(), // Fecha de creación
+            },
+        };
+
         await dynamoDb.send(new PutCommand(params));
+
         return {
             statusCode: 201,
             headers: corsHeaders,
             body: JSON.stringify({
                 message: 'Category created successfully',
-                categoryId, // Devuelve el ID de la categoría creada
-                categoryName // Incluye el nombre de la categoría en la respuesta
+                categoryId,
+                categoryName,
+                order,
             }),
         };
     } catch (error) {
@@ -133,6 +164,7 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
             categoryName: item.categoryName,
             SK: item.SK,
             products: [],
+            order: item.order, // Incluir el campo "order"
         }));
 
         const products: Product[] = (productsResult.Items || []).map((product: any) => ({
@@ -142,7 +174,8 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
             productId: product.SK.split('#')[1],
             createdAt: product.createdAt,
             categoryId: product.categoryId,
-            isActive: product.isActive === undefined ? true : product.isActive, // Manejar productos sin isActive
+            isActive: product.isActive === undefined ? true : product.isActive,
+            order: product.order,
         }));
 
         // Organizar productos por categoría
@@ -163,6 +196,9 @@ export const getCategories: APIGatewayProxyHandler = async (event) => {
                 isActive: product.isActive ?? true // Asegurar que isActive tenga un valor por defecto
             })),
         }));
+
+        // Ordenar las categorías por el campo "order"
+        categoriesWithProducts.sort((a, b) => a.order - b.order);
 
         return {
             statusCode: 200,
@@ -267,6 +303,71 @@ export const deleteCategory: APIGatewayProxyHandler = async (event) => {
         return {
             statusCode: 500,
             body: JSON.stringify({ message: 'Error deleting category and products', error: errorMessage }),
+        };
+    }
+};
+
+export const reorderCategories: APIGatewayProxyHandler = async (event) => {
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const userId = await getUserIdFromToken(authHeader);
+    if (!userId) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    const { categories } = JSON.parse(event.body || '{}'); // Espera un arreglo con categoryId y order
+
+    if (!categories || !Array.isArray(categories)) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid input' }),
+        };
+    }
+
+    try {
+        for (const { categoryId, order } of categories) {
+            const updateParams = {
+                TableName: USERS_TABLE,
+                Key: {
+                    PK: `USER#${userId}`,
+                    SK: `CATEGORY#${categoryId}`,
+                },
+                UpdateExpression: 'SET #order = :order',
+                ExpressionAttributeNames: {
+                    '#order': 'order',
+                },
+                ExpressionAttributeValues: {
+                    ':order': order,
+                },
+            };
+
+            await dynamoDb.send(new UpdateCommand(updateParams));
+        }
+
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Categories reordered successfully' }),
+        };
+    } catch (error) {
+        console.error('Error reordering categories:', error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Error reordering categories' }),
         };
     }
 };

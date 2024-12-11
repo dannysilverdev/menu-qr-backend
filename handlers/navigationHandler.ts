@@ -118,6 +118,7 @@ export const viewMenu: APIGatewayProxyHandler = async (event) => {
                     categoryName: categoryItem.categoryName,
                     SK: categoryItem.SK,
                     products: products,
+                    order: categoryItem.order,
                 };
             }) || []
         );
