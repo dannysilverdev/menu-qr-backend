@@ -127,6 +127,67 @@ export const createProduct: APIGatewayProxyHandler = async (event) => {
 };
 
 /**
+ * DELETE PRODUCT
+ */
+export const deleteProduct: APIGatewayProxyHandler = async (event) => {
+    const { categoryId, productId } = event.pathParameters || {};
+    const authHeader = event.headers.Authorization || event.headers.authorization;
+
+    if (!authHeader) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Authorization header missing' }),
+        };
+    }
+
+    const userId = await getUserIdFromToken(authHeader);
+    if (!userId) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Invalid or expired token' }),
+        };
+    }
+
+    if (!categoryId || !productId) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Category ID and Product ID are required' }),
+        };
+    }
+
+    const params = {
+        TableName: USERS_TABLE,
+        Key: {
+            PK: `USER#${userId}`,
+            SK: `PRODUCT#${productId}`,
+        },
+        ConditionExpression: "categoryId = :categoryId",
+        ExpressionAttributeValues: {
+            ":categoryId": `CATEGORY#${categoryId}`,
+        },
+    };
+
+    try {
+        await dynamoDb.send(new DeleteCommand(params));
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Product deleted successfully' }),
+        };
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Error deleting product', error: error instanceof Error ? error.message : 'Unknown error' }),
+        };
+    }
+};
+
+/**
  * REORDER PRODUCTS
  */
 export const reorderProducts: APIGatewayProxyHandler = async (event) => {
