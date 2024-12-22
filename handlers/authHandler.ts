@@ -10,58 +10,92 @@ import { uploadImageToS3 } from './uploadImageToS3.js';
  * Creates a new user account with hashed password and profile information
  */
 export const signup: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
-    const { username, password, localName, phoneNumber, imageBase64 } = JSON.parse(event.body || '{}');
-
-    if (!username || !password || !localName || !phoneNumber || !imageBase64) {
-        return {
-            statusCode: 400,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'All fields are required' }),
-        };
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const buffer = Buffer.from(imageBase64, 'base64');
-
-    let imageUrl = '';
     try {
-        imageUrl = await uploadImageToS3(username, buffer);
-    } catch (error) {
-        const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
-        console.error('Error uploading image:', errorMessage);
+        console.log('Received event:', event);
 
+        // Parse and validate the request body
+        const body = event.body ? JSON.parse(event.body) : {};
+        const { username, password, localName, phoneNumber, imageBase64 } = body;
+
+        // Validate input fields
+        if (
+            !username || !password || !localName || !phoneNumber || !imageBase64 ||
+            typeof username !== 'string' ||
+            typeof password !== 'string' ||
+            typeof localName !== 'string' ||
+            typeof phoneNumber !== 'string' ||
+            typeof imageBase64 !== 'string' ||
+            !username.trim() ||
+            !password.trim() ||
+            !localName.trim() ||
+            !phoneNumber.trim() ||
+            !imageBase64.trim()
+        ) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: 'All fields must be non-empty strings' }),
+            };
+        }
+
+        console.log('Validated input:', { username, localName, phoneNumber });
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('Password hashed successfully');
+
+        // Convert image from Base64 and upload to S3
+        const buffer = Buffer.from(imageBase64, 'base64');
+        let imageUrl = '';
+        try {
+            imageUrl = await uploadImageToS3(username, buffer);
+            console.log('Image uploaded successfully to S3:', imageUrl);
+        } catch (error) {
+            const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
+            console.error('Error uploading image:', errorMessage);
+            return {
+                statusCode: 500,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: `Error uploading image: ${errorMessage}` }),
+            };
+        }
+
+        // Prepare the DynamoDB record
+        const params = {
+            TableName: USERS_TABLE!,
+            Item: {
+                PK: `USER#${username}`,
+                SK: 'PROFILE',
+                password: hashedPassword,
+                localName,
+                phoneNumber,
+                imageUrl,
+            },
+        };
+
+        // Insert record into DynamoDB
+        try {
+            await dynamoDb.send(new PutCommand(params));
+            console.log('User record created successfully in DynamoDB');
+            return {
+                statusCode: 201,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: 'User created successfully', imageUrl }),
+            };
+        } catch (error) {
+            console.error('Error saving user to DynamoDB:', error);
+            return {
+                statusCode: 500,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: 'Error creating user in database' }),
+            };
+        }
+    } catch (error) {
+        console.error('Unexpected error occurred:', error);
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({ message: errorMessage }),
-        };
-    }
-
-    const params = {
-        TableName: USERS_TABLE!,
-        Item: {
-            PK: `USER#${username}`,
-            SK: 'PROFILE',
-            password: hashedPassword,
-            localName,
-            phoneNumber,
-            imageUrl,
-        },
-    };
-
-    try {
-        await dynamoDb.send(new PutCommand(params));
-        return {
-            statusCode: 201,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'User created successfully', imageUrl }),
-        };
-    } catch (error) {
-        console.error('Error creating user:', error);
-        return {
-            statusCode: 500,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Error creating user' }),
+            body: JSON.stringify({ message: 'Internal Server Error' }),
         };
     }
 };
